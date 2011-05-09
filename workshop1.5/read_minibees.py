@@ -22,7 +22,8 @@ def mag(x):
     """Calculate the magnitude of a 2D array of 1D vectors."""
     return sqrt(sum((x*x).transpose()))
 
-a = read_minibees(5000)
-for x in a:
-    plot(a[x][:,3], mag(a[x][:,4:7]))
-show()
+if __name__=="__main__":
+    a = read_minibees(5000)
+    for x in a:
+        plot(a[x][:,3], mag(a[x][:,4:7]))
+    show()
