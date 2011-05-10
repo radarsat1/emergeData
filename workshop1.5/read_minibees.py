@@ -3,12 +3,15 @@
 from pylab import array, plot, show
 from numpy import vdot, sqrt
 
+def ntp2sec(sec, frac):
+    return sec + frac/float(1<<32)
+
 def readints(f, N=None):
     """Read rows of comma-separated integers into a 2D numpy array."""
     a = [[] for i in range(11)]
     for n, i in enumerate(f):
         b = map(int,i.split(','))
-        a[b[4]].append(b[:4]+b[5:])
+        a[b[4]].append(b[:2]+[ntp2sec(b[0],b[1])]+b[2:4]+b[5:])
         if N!=None and n >= N:
             break
     return dict([(n, array(i)) for n, i in enumerate(a) if i!=[]])
