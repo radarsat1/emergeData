@@ -14,7 +14,8 @@ def readints(f, N=None):
         a[b[4]].append(b[:2]+[ntp2sec(b[0],b[1])]+b[2:4]+b[5:])
         if N!=None and n >= N:
             break
-    return dict([(n, array(i)) for n, i in enumerate(a) if i!=[]])
+    return (dict([(n, array(i)) for n, i in enumerate(a) if i!=[]]),
+            ('sec','frac','ntpsec','video','frame','accelx','accely','accelz'))
 
 def read_minibees(N=None):
     """Read the data from workshop1.5 (aka Session 2) from a bzipped file."""
@@ -26,7 +27,7 @@ def mag(x):
     return sqrt(sum((x*x).transpose()))
 
 if __name__=="__main__":
-    a = read_minibees(5000)
+    a, fields = read_minibees(5000)
     for x in a:
-        plot(a[x][:,3], mag(a[x][:,4:7]))
+        plot(a[x][:,4], mag(a[x][:,5:8]))
     show()

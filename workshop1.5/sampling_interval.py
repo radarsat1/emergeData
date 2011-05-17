@@ -6,7 +6,7 @@ from numpy import zeros, ones, concatenate
 from read_minibees import read_minibees
 
 if __name__=="__main__":
-    a = read_minibees()
+    a, fields = read_minibees()
     b = a[2]
 
     # Adjust the frame count by an offset, determined by manually
