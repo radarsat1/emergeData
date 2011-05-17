@@ -20,7 +20,7 @@ if __name__=="__main__":
     frameoffset = concatenate((zeros(restartframe),
                               ones(len(b)-restartframe)*b[stopframe,4]))
 
-    frames = (b[:,4] + frameoffset - b[0,4]) / 29.97
+    frames = (b[:,4] + frameoffset - b[0,4]) / 30.0
     times = b[:,2] - b[0,2]
 
     figure(1)
