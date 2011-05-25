@@ -68,7 +68,7 @@ def export_audio_all_minibees(minibees, prefix, ext):
     samplerate = 44100.0
     amplitude = 520.0
 
-    for n in {10:minibees[10]}:
+    for n in minibees:
         data = minibees[n]
         offsets = find_offsets(data)
         d = split_data_on_offsets(data, offsets)
