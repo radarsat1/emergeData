@@ -18,9 +18,11 @@ def linspacerize(t, x, n):
     return ft, f(ft)
 
 def plot_rms(t, x):
-    ft, fx = linspacerize(t, x[:,0], 1000)
-    avg = filtfilt(*butter(1, 0.01, 'low'), x=fx)
-    rms = filtfilt(*butter(1, 0.01, 'low'), x=sqrt((fx-avg)**2))
+    L = len(t)*10
+    srL = L / (t[-1]-t[0])
+    ft, fx = linspacerize(t, x[:,0], L)
+    avg = filtfilt(*butter(1, 1/srL, 'low'), x=fx)
+    rms = filtfilt(*butter(1, 1/srL, 'low'), x=sqrt((fx-avg)**2))
 
     pt = [0]
     for k in xrange(len(ft)-1):
@@ -35,14 +37,20 @@ def plot_rms(t, x):
             pt.append(z)
 
     freqs = 1.0/clip(array(pt[1:])-array(pt[:-1]), 0.001, 100000)
-    lft, lfreqs = linspacerize(pt[1:], freqs, 1000)
-    ffreqs = filtfilt(*butter(1, 0.01, 'low'), x=lfreqs*20)
+    lft, lfreqs = linspacerize(pt[1:], freqs, L)
+    ffreqs = filtfilt(*butter(1, 1/srL, 'low'), x=lfreqs)
+
+    # Periodicity is defined here as "average absolute difference
+    # between instantaneous frequency and running mean frequency."
+    pfreqs = filtfilt(*butter(1, 1/srL, 'low'), x=abs(lfreqs-ffreqs))
+    periodicity = (max(pfreqs)-pfreqs) / max(pfreqs)
 
     clf()
     plot(ft, fx, '#DDDDDD')
     plot(ft, avg, label='running mean')
     plot(ft, rms, label='running rms')
-    plot(lft, ffreqs, label='avg freq * 20')
+    plot(lft, ffreqs, label='avg freq')
+    plot(lft, periodicity*200, label='periodicity')
     xlabel('time (min)')
     legend()
 
