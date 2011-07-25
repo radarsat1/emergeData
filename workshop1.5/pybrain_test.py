@@ -96,7 +96,7 @@ if __name__=='__main__':
         if tags.frame_is(-1546120540, point[4], "jumping"):
           y = 1
         else:
-          y = 0
+          y = -1
         ds.addSample( (x), (y,) )
         datapoints.append([x, y])
     
