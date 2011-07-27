@@ -68,17 +68,22 @@ if __name__=='__main__':
         notTagged.append([point[4]] + x)
         
     fig = plt.figure()
+    #ax = Axes3D(fig)
     ax = fig.add_subplot(111, projection='3d')
     if (tagged != []):
       tagged = array(tagged)
-      ax.scatter(tagged[:,1], tagged[:,2], tagged[:,3] color="blue", marker='d', label=tag)
+      ax.scatter(tagged[:,1], tagged[:,2], tagged[:,3], color="blue", marker='d')
     if (notTagged != []):
       notTagged = array(notTagged)
-      scatter(notTagged[:,1], notTagged[:,2], notTagged[:,3], color="red", marker='x', label="not "+tag)
+      ax.scatter(notTagged[:,1], notTagged[:,2], notTagged[:,3], color="red", marker='x')
     plt.title("Tag \"" + tag + "\" for individual #" + str(uid))
     ax.set_xlabel("mean")
     ax.set_ylabel("min")
     ax.set_zlabel("max")
-    plt.legend(loc="upper center")
+    
+    tr = Rectangle((0, 0), 1, 1, fc="b")
+    ntr = Rectangle((0, 0), 1, 1, fc="r")
+    plt.legend([tr, ntr], [tag, "not " + tag], loc="lower left")
+    #plt.legend( (taggedPlot, notTaggedPlot), (tag, "not "+tag), loc="upper center")
     plt.savefig("plots/plot_tag--mag-mean-min-max--" + tag + "_" + str(windowSize) + "_" + str(uid) + ".png")
-    plt.show()
+#    plt.show()
