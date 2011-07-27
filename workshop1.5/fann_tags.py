@@ -10,9 +10,7 @@ from read_tags import read_tags
 from export_audio import find_offsets, split_data_on_offsets
 import pyfann.libfann as fann
 
-MINIBEE = 7
 VIDEO = 1     # 0 or 1
-FIELD = 5     # x=5, y=6, z=7
 
 # How many data points to train on?  Will be extracted periodically
 # from data set.
@@ -24,31 +22,46 @@ inputfields = ['rms', 'periodicity']
 
 ########## Load and calculate data
 
-# minibees, fields = read_minibees()
-data = minibees[MINIBEE]
-offsets = find_offsets(data)
-d = split_data_on_offsets(data, offsets)
-curves = calc_curves((d[VIDEO][:,4]-d[VIDEO][0,4])/30.0,
-                     d[VIDEO][:,FIELD], 0.1)
+minibees, fields = read_minibees()
+mbIds = sort(minibees.keys())
+
+offsets = [find_offsets(minibees[mb]) for mb in mbIds]
+ds = [split_data_on_offsets(minibees[mb], o)
+      for mb, o in zip(mbIds, offsets)]
+
+curves = [calc_curves((d[VIDEO][:,4]-d[VIDEO][0,4])/30.0,
+                      mag(d[VIDEO][:,5:8]), 0.1)
+          for d in ds]
 
 tags = read_tags()
 
-frames = curves['time']*30
-frametags = [tags.frame_tags(int(d[1][0,3]), f) for f in frames]
+frames = curves[1]['time']*30
+frametags = [tags.frame_tags(int(ds[1][1][0,3]), f) for f in frames]
 
 def normalized(x):
     return (x - min(x)) / (max(x)-min(x))
 
-target = normalized(array([1.0 if 'fistpump' in t else
+def avg_curves(curves):
+    end = min([len(c) for c in curves[0]])
+    output = [zeros(end) for x in range(len(curves))]
+    inputs = range(len(curves[0]))
+    for f, field in enumerate(curves):
+        for n in xrange(end):
+            output[f][n] = average([field[i][n] for i in inputs])
+    return output, end
+
+inputs, end = avg_curves([[normalized(c[f]) for c in curves]
+                          for f in inputfields])
+
+tag = 'fistpump'
+target = normalized(array([1.0 if tag in t else
                            0.0
                            for t in frametags]))
 
-trainingframes = frames[::TRAIN_EVERY]
-trainingset = target[::TRAIN_EVERY]
+trainingframes = frames[:end:TRAIN_EVERY]
+trainingset = target[:end:TRAIN_EVERY]
 
 ########## FANN
-
-inputs = [normalized(curves[f]) for f in inputfields]
 
 datafile = open('fann.trainingset','w')
 print >>datafile, len(trainingframes), len(inputs), 1
@@ -87,11 +100,13 @@ else:
     net.set_learning_rate(learning_rate)
     # net.set_activation_function_output(fann.COS_SYMMETRIC)
     # net.set_activation_function_output(fann.SIGMOID_SYMMETRIC)
-    net.set_activation_function_output(fann.SIGMOID_STEPWISE)
+    # net.set_activation_function_output(fann.SIGMOID_STEPWISE)
     # net.set_activation_function_output(fann.GAUSSIAN_SYMMETRIC)
-    # net.set_activation_function_output(fann.ELLIOT_SYMMETRIC)
+    net.set_activation_function_output(fann.ELLIOT_SYMMETRIC)
     # net.set_activation_function_output(fann.LINEAR)
     # net.set_activation_function_output(fann.LINEAR_PIECE_SYMMETRIC)
+    # net.set_activation_function_output(fann.THRESHOLD)
+    # net.set_activation_function_output(fann.THRESHOLD_SYMMETRIC)
 
     net.train_on_file("fann.trainingset", max_iterations,
                       iterations_between_reports,
@@ -109,19 +124,25 @@ for i in xrange(len(inputs[0])):
 
 ## Plot results and the inputs
 
+threshd = (out > 0.5)
+
 clf()
 subplot(1+len(inputs),1,1)
-plot(out, 'b')
+plot(out, 'b', alpha=0.2)
+plot(threshd*0.8, 'b')
 plot(target, 'r', label='target')
-title('output vs. training: minibee %d, tag=fistpump'%MINIBEE)
+title('output vs. training: minibees avg, tag=%s'%tag)
 ylabel('output')
-axis(ymax=1.1)
+axis(ymax=1.1,xmin=0,xmax=end)
+
+print 'error(%s):'%tag,float(sum(logical_xor(threshd[:end],target[:end]))) / float(sum(target[:end]))
 
 for I in range(len(inputs)):
     subplot(1+len(inputs),1,I+2)
     plot(inputs[I][::TRAIN_EVERY])
     ylabel(inputfields[I])
     scale = max(inputs[I][::TRAIN_EVERY]) / max(trainingset)
+    axis(xmin=0,xmax=end/TRAIN_EVERY)
     # plot(trainingset*scale, label='training')
 
 show()
