@@ -38,34 +38,40 @@ def mag(x):
     return sqrt(sum((x*x).transpose()))
 
 if __name__=='__main__':
-    tags = read_tags()
-    data, fields = read_minibees()
     
     if (len(sys.argv) != 4):
       print "Usage: " + sys.argv[0] + " <uid> <tagname> <windowsize>"
       exit(0)
     
-    uid = int(sys.argv[1])
+    if (sys.argv[1] == "all"):
+      uids = [1,2,3,5,7,8,9,10]
+    else:
+      uids = sys.argv[1].split(",")
     tag = sys.argv[2]
     windowSize = int(sys.argv[3])
+    
+    tags = read_tags()
+    data, fields = read_minibees()
     
     videoId = -1546120540
     
     tagged = []
     notTagged = []
     
-    individual = data[uid]
-    stats = WindowedStats(windowSize)
-    
-    for point in individual:
-      if (int(point[3]) != videoId):
-        continue
-      stats.add( mag(point[5:8]) )
-      x = stats.getStats()
-      if tags.frame_is(videoId, point[4], tag):
-        tagged.append([point[4]] + x)
-      else:
-        notTagged.append([point[4]] + x)
+    for uid in uids:
+      uid = int(uid)
+      individual = data[uid]
+      stats = WindowedStats(windowSize)
+      
+      for point in individual:
+        if (int(point[3]) != videoId):
+          continue
+        stats.add( mag(point[5:8]) )
+        x = stats.getStats()
+        if tags.frame_is(videoId, point[4], tag):
+          tagged.append([point[4]] + x)
+        else:
+          notTagged.append([point[4]] + x)
         
     fig = plt.figure()
     #ax = Axes3D(fig)
@@ -76,7 +82,7 @@ if __name__=='__main__':
     if (notTagged != []):
       notTagged = array(notTagged)
       ax.scatter(notTagged[:,1], notTagged[:,2], notTagged[:,3], color="red", marker='x')
-    plt.title("Tag \"" + tag + "\" for individual #" + str(uid))
+    plt.title("Tag \"" + tag + "\" (window=" + str(windowSize) + ", id=" + sys.argv[1] + ")")
     ax.set_xlabel("mean")
     ax.set_ylabel("min")
     ax.set_zlabel("max")
@@ -85,5 +91,5 @@ if __name__=='__main__':
     ntr = Rectangle((0, 0), 1, 1, fc="r")
     plt.legend([tr, ntr], [tag, "not " + tag], loc="lower left")
     #plt.legend( (taggedPlot, notTaggedPlot), (tag, "not "+tag), loc="upper center")
-    plt.savefig("plots/plot_tag--mag-mean-min-max--" + tag + "_" + str(windowSize) + "_" + str(uid) + ".png")
+    plt.savefig("plots/plot_tag--mag-mean-min-max--" + tag + "_" + str(windowSize) + "_" + sys.argv[1].replace(",","-") + ".png")
 #    plt.show()
