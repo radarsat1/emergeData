@@ -26,8 +26,10 @@ def mag(x):
     """Calculate the magnitude of a 2D array of 1D vectors."""
     return sqrt(sum((x*x).transpose()))
 
+# a[i][j][k]=field value for individual i, point/row j, column k
 if __name__=="__main__":
     a, fields = read_minibees(5000)
     for x in a:
+        # x-axis: frame, y-axis: magnitude of acceleration vector xyz
         plot(a[x][:,4], mag(a[x][:,5:8]))
     show()

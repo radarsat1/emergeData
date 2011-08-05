@@ -111,7 +111,7 @@ if __name__=='__main__':
     print "Train"
     print "Base error: " + str(trainer.testOnData())
     print "Percentage error: " + str(percentError( trainer.testOnClassData(), datapointsarray[:,1] )) + "%"
-    trainer.trainEpoch(10)
+    trainer.trainEpochs(10)
     print "Final error: " + str(trainer.testOnData())
     print "Percentage error: " + str(percentError( trainer.testOnClassData(), datapointsarray[:,1] )) + "%"
     

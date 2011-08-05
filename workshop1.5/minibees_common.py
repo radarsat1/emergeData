@@ -1,6 +1,6 @@
 from pylab import array, plot, show, setp
 from numpy import vdot, sqrt
-from collections import defaultdict
+from collections import defaultdict, deque
 
 __all__ = ['read_minibees', 'read_tags', 'VideoTags']
 
@@ -74,3 +74,41 @@ def read_minibees(N=None,filename="session2_minibees_cropped.csv.bz2"):
     """Read the data from workshop1.5 (aka Session 2) from a bzipped file."""
     from bz2 import BZ2File
     return readints(BZ2File(filename), N)
+
+# Math / utils functions
+
+class Statistics:
+    def __init__(self, windowSize):
+      self.windowSize = windowSize
+      self.buffer = deque([])
+    
+    def reset(self):
+      self.buffer = deque([])
+    
+    def add(self, v):
+      self.buffer.append(v)
+      if (len(self.buffer) > self.windowSize):
+        self.buffer.popleft()
+      
+    def getStats(self):
+      # First compute min and max
+      x = self.buffer[0]
+      minVal = x
+      maxVal = x
+      mean   = x
+      for i in range(1, len(self.buffer)):
+        x = self.buffer[i]
+        minVal = min(x, minVal)
+        maxVal = max(x, maxVal)
+        mean   += x
+      mean /= len(self.buffer)
+      
+      # Second compute stddev
+      stddev = 0
+      if len(self.buffer) >= 2:
+        for i in range(0, len(self.buffer)):
+          x = self.buffer[i] - mean
+          stddev += x*x
+        stddev /= (len(self.buffer)-1)
+        stddev = sqrt(stddev)
+      return [ mean, stddev, minVal, maxVal ]

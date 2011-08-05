@@ -1,92 +1,19 @@
+#!/usr/bin/env python2.6
+
 import os
 import numpy
 from tempfile import mkstemp
 from string import join
-
-from collections import deque
 
 from inspect import *
 
 from pylab import *
 
 from minibees_common import *
+from filtering import *
+
 from progressbar import ProgressBar
 
-def mag(v):
-  return sqrt(sum((v*v).transpose()))
-  
-class Filtering:
-  def reset(self):
-    return
-  
-  def call(self, v):
-    return v.tolist()
-
-  def name(self):
-    return None
-
-class RMS(Filtering):
-  def call(self, v):
-    return [mag(v)]
-    
-  def name(self):
-    return ["rms"]
-
-class Accel(Filtering):
-  def call(self, v):
-    return v.tolist()
-    
-  def name(self):
-    return ["ax", "ay", "az"]
-
-class Jerk(Filtering):
-  def reset(self):
-    self.prev = array([0, 0, 0])
-  
-  def call(self, v):
-    # TODO: adjust given frame
-    dv = v - self.prev
-    self.prev = v
-    jrms = mag(dv)
-    dv = dv.tolist()
-    dv.append(jrms)
-    return dv
-    
-  def name(self):
-    return ["jx", "jy", "jz", "jrms"]
-
-class MeanMinMax(Filtering):
-    def __init__(self, windowSize):
-      self.windowSize = windowSize
-      self.buffer = deque([])
-    
-    def reset(self):
-      self.buffer = deque([])
-    
-    def call(self, v):
-      self.add(mag(v))
-      return self.getStats()
-      
-    def name(self):
-      return [ "mean_" + str(self.windowSize), "min_" + str(self.windowSize), "max_" + str(self.windowSize) ]
-    
-    def add(self, v):
-      self.buffer.append(v)
-      if (len(self.buffer) > self.windowSize):
-        self.buffer.popleft()
-      
-    def getStats(self):
-      x = self.buffer[0]
-      minVal = x
-      maxVal = x
-      mean   = x
-      for i in range(1, len(self.buffer)):
-        x = self.buffer[i]
-        minVal = min(x, minVal)
-        maxVal = max(x, maxVal)
-        mean   += x
-      mean /= len(self.buffer)
-      return [ mean, minVal, maxVal ]
     
 def generate_data_file(filename, columns):
   videoId = -1546120540
@@ -150,16 +77,16 @@ def generate_data_file(filename, columns):
   basename, extension = os.path.splitext(filename)
   # TODO: support for gzip
   if (extension == "npy"):
-    outputData = array(outputData)
-    numpy.save(filename, outputData, fmt="%f")
-  else:
-    f = open(filename, "w")
-    f.write("# " + join(columnNames) + "\n")
-    for row in outputData:
-      for col in row:
-        f.write(str(col) + " ")
-      f.write("\n")
-    f.close()
+    print "NPY format not supported yet, saving to text file"
+  #  outputData = array(outputData)
+  #  numpy.save(filename, outputData, fmt="%f")
+  f = open(filename, "w")
+  f.write("# " + join(columnNames) + "\n")
+  for row in outputData:
+    for col in row:
+      f.write(str(col) + " ")
+    f.write("\n")
+  f.close()
   print "Done."
 
 if __name__=='__main__':
@@ -169,5 +96,5 @@ if __name__=='__main__':
   
   filename = sys.argv[1]
   
-  generate_data_file(filename, [ RMS(), Accel(), Jerk(), MeanMinMax(100) ])
+  generate_data_file(filename, [ RMS(), Accel(), Jerk(), BasicStats(10), BasicStats(100) ])
   
