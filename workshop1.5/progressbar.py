@@ -23,29 +23,28 @@
 import sys,os
  
 class ProgressBar:
-    def __init__(self, min_value = 0, max_value = 100, width=77,**kwargs):
+    def __init__(self, min_value = 0, max_value = 100, **kwargs):
         self.char = kwargs.get('char', '#')
         self.mode = kwargs.get('mode', 'dynamic') # fixed or dynamic
         if not self.mode in ['fixed', 'dynamic']:
             self.mode = 'fixed'
+        self.width = int(kwargs.get('width', '77'))
  
         self.bar = ''
         self.min = min_value
         self.max = max_value
         self.span = max_value - min_value
-        self.width = width
         self.amount = 0       # When amount == max, we are 100% done 
-        self.update_amount(0) 
+        #self.update(0) 
  
- 
-    def increment_amount(self, add_amount = 1):
+    def increment(self, add_amount = 1):
         """
         Increment self.amount by 'add_ammount' or default to incrementing
         by 1, and then rebuild the bar string. 
         """
-        self.update_amount(self.amount + add_amount)
+        self.update(self.amount + add_amount)
  
-    def update_amount(self, new_amount = None):
+    def update(self, new_amount = None):
         """
         Update self.amount with 'new_amount', and then rebuild the bar 
         string.
@@ -54,10 +53,15 @@ class ProgressBar:
         if new_amount < self.min: new_amount = self.min
         if new_amount > self.max: new_amount = self.max
         self.amount = new_amount
-        self.build_bar()
+        self.build()
  
+    def finish(self):
+        """
+        Clears progress bar.
+        """
+        print "\n"
  
-    def build_bar(self):
+    def build(self):
         """
         Figure new percent complete, and rebuild the bar string base on 
         self.amount.
@@ -93,16 +97,16 @@ def main():
     limit = 1000000
  
     print 'Example 1: Fixed Bar'
-    prog = ProgressBar(0, limit, 77, mode='fixed')
+    prog = ProgressBar(0, limit, mode='fixed')
     for i in xrange(limit+1):
-        prog.update_amount(i)
+        prog.update(i)
  
     print '\n\n'
  
     print 'Example 2: Dynamic Bar'
-    prog = ProgressBar(0, limit, 77, mode='dynamic', char='-')
+    prog = ProgressBar(0, limit, mode='dynamic', char='-')
     for i in xrange(limit+1):
-        prog.increment_amount()
+        prog.increment()
  
     print '\n\n'
  
