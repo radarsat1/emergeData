@@ -160,14 +160,7 @@ def generate_data_file(filename, columns):
         f.write(str(col) + " ")
       f.write("\n")
     f.close()
-#    tmpfile = mkstemp('','tmp_', '/tmp')
-#    tmpfile = tmpfile[1]
-#    numpy.savetxt(tmpfile, outputData)
-#    os.system('echo "# ' + join(columnNames) + ' > ' + filename)
-#    os.system('cat ' + tmpfile + ' >> ' + filename)
-#    os.remove(tmpfile)
   print "Done."
-#  numpy.save("/tmp/out.npy", outputData)
 
 if __name__=='__main__':
   if (len(sys.argv) != 2):
