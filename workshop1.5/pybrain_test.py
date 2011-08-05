@@ -7,10 +7,11 @@ from pybrain.datasets import *
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.structure import TanhLayer
+from pybrain.utilities import percentError
 
 N_HIDDEN = 3
-LEARNING_RATE = 0.01
-LEARNING_RATE_DECAY = 1
+LEARNING_RATE = 0.1
+LEARNING_RATE_DECAY = 0.01
 
 def ntp2sec(sec, frac):
     return sec + frac/float(1<<32)
@@ -96,10 +97,11 @@ if __name__=='__main__':
         if tags.frame_is(-1546120540, point[4], "jumping"):
           y = 1
         else:
-          y = -1
+          y = 0
         ds.addSample( (x), (y,) )
         datapoints.append([x, y])
-    
+    datapointsarray = array(datapoints)
+
     # Create network
     print "Build network"
     net = buildNetwork(1, N_HIDDEN, 1, bias=True, hiddenclass=TanhLayer)
@@ -108,8 +110,10 @@ if __name__=='__main__':
     
     print "Train"
     print "Base error: " + str(trainer.testOnData())
-    trainer.train();
+    print "Percentage error: " + str(percentError( trainer.testOnClassData(), datapointsarray[:,1] )) + "%"
+    trainer.trainEpoch(10)
     print "Final error: " + str(trainer.testOnData())
+    print "Percentage error: " + str(percentError( trainer.testOnClassData(), datapointsarray[:,1] )) + "%"
     
     activations = []
     for i in range(0, len(datapoints)):
@@ -121,7 +125,6 @@ if __name__=='__main__':
     setp(plot(individual[:,4], mag(individual[:,5:8])), color="black")
     
     # Correct classification (target)
-    datapointsarray = array(datapoints)
     plot(individual[:,4], datapointsarray[:,1])
     
     # Classification (from NN)
