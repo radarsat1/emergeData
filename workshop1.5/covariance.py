@@ -61,3 +61,39 @@ plot(hoptime, ccov, label='covariance')
 legend()
 subplot(3,1,3)
 [plot(time, all_mag[m,:], alpha=0.1) for m in range(all_mag.shape[0])]
+
+from itertools import combinations, chain
+def powerset2(iterable):
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(2,len(s)+1))
+
+figure(1)
+clf()
+groups = powerset2(arange(len(minibees)))
+c = cov(all_mag[:,1000:1200])
+s = subplot(1,1,1)
+for n, g in enumerate(groups):
+    pairs = combinations(g, 2)
+    a = average([c[p[0],p[1]] for p in pairs])        
+    plot(n, a, 'bo')
+    if a > 9000:
+        s.text(n+1, a+100, str([minibees.keys()[m] for m in g]))
+suptitle('Avg. covariance between groups of minibees at time %.2f-%.2f.'%(time[1000],time[1200]))
+
+figure(2)
+clf()
+groups = powerset2(arange(len(minibees)))
+c = cov(all_mag)
+s = subplot(1,1,1)
+avgs = []
+for n, g in enumerate(groups):
+    pairs = combinations(g, 2)
+    a = average([c[p[0],p[1]] for p in pairs])        
+    avgs.append(a)
+    plot(n, a, 'bo')
+    if a > 5000:
+        s.text(n+1, a+100, str([minibees.keys()[m] for m in g]))
+suptitle('Avg. covariance between groups of minibees, whole time.')
+        
+#figure(2)
+#imshow(c, interpolation='nearest', cmap='gray')
