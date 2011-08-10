@@ -107,13 +107,17 @@ for m in minibees.keys():
     savefig('workshop_autocorr_10hz_m%d.png'%m)
     draw()
 
+def unwrap_time(time, timediff):
+    brks = [n for n,d in enumerate((time[1:]-time[:-1])) if d < -timediff]
+    idx = arange(time.size)
+    return sum([time] + [(idx > b)*time[b] for b in brks], axis=0)
+
 clf()
 time_range = (0,100000000000)
 freqs = []
 frdiffs = []
 for m in minibees.keys():
-    time = minibees[m][:,4]/30.0
-    time += (arange(time.size) > 3838)*1212  # unwrap time
+    time = unwrap_time(minibees[m][:,4]/30.0, 500)
     hoptime = time[:time.size-L1-hopsize:hopsize]
     time_range = (max(time_range[0], hoptime[0]),
                   min(time_range[1], hoptime[-1]))
