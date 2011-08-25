@@ -1,12 +1,14 @@
 \documentclass{article}
 \usepackage{xspace}
 \usepackage{graphicx}
+\usepackage{amsmath}
 
 \title{Technical report for Workshop 1.5 data analysis}
 \author{S.~Sinclair}
 
 \newcommand{\emerge}{\textsc{[E]merge}\xspace}
 \newcommand{\todo}[1]{\emph{To do: #1}}
+\newcommand{\func}[1]{\texttt{#1}}
 
 \begin{document}
 \maketitle
@@ -51,19 +53,97 @@ afterwards.
 
 \section{Features}
 
+Features were analysed in Scientific Python (SciPy) and Matlab
+environments, and this document will make reference to functions in
+these applications.
+
+Most features are based on windows of the signal.  We will use the
+notation $x_w$ to denote window $w$ of signal $x$.
+
+Windows are $n$ samples in length and separated by a hopsize $h$, such
+that
+\begin{align}
+x_w &= \left[\begin{array}{cccc}x(hw)&x(hw+\tau)&\dots&x(hw + n\tau)\end{array}\right],
+\end{align}
+with a sample rate of $\tau.$
+Windows may also be referred to as ``blocks''.
+
 \subsection{Amplitude (root mean square)}
 
-Anyone.
+The accelerometer signal is a 3-vector in Cartesian coordinates, from
+which a magnitude can be taken by converting to polar coordinates:
+
+\begin{align}
+\textrm{mag}(x) &= \sqrt{x_1^2 + x_1^2 + x_1^2}
+\end{align}
+
+The amplitude of the signal is then determined on a block-wise basis
+by method of root mean square (RMS), calculated as,
+\begin{align}
+\textrm{RMS}(m_w) &= \sqrt\frac{\sum^n_{i=1}{m_w(i)}}{n},
+\end{align}
+where $m_w$ is window $w$ of the magnitude signal $m$.
 
 \subsection{Frequency and periodicity}
 
+When working with low-frequency data such as gesture signals, it is
+not necessarily possible to rely on frequency-domain approaches such
+as the Fourier transform for fundamental frequency ($f_0$) estimation
+due to poor resolution in the low-frequency range.
+
+Instead, we pursued two time-domain methods, zero-crossing analysis
+and autocorrelation.
+
 \subsubsection{Zero-crossing analysis}
 
-(Steve)
+For a signal with low noise and few harmonics, it can be possible to
+determine its frequency by determining the times at which the signal
+crosses zero, and differentiating these to calculate a period size.
+
+We calculated zero crossings of a high-pass magnitude signal.  That
+is, the magnitude signal was low-pass filtered to determine a running
+mean, and the original signal then subtracted this to produce a signal
+oscillating around zero.
+
+Zero-crossings in the positive direction were detected and linear
+interpolation was used to find the sub-sample position.
+Frequency was then calculated by dividing the period.
+
+The notion of ``periodicity'' was taken to mean the inverse of the
+deviation from the mean frequency.
+That is to say, a signal whose frequency is changing often should be
+thought of as having low periodicity, and a signal with a fairly
+constant frequency should be thought of as having high periodicity.
+Periodicity was therefore calculated by taking the standard deviation
+of a high-pass frequency signal and subtracting this from the maximum.
+
+In general neither frequency nor periodicity determined by
+zero-crossings seemed to be a successful indicator of gesture.
+This is perhaps due to the low sampling rate of the data and the
+presence of likely aliasing which would introduce high-frequency
+artifacts, so it may be useful to try this method on better-sampled
+data.
 
 \subsubsection{Autocorrelation}
 
-(Steve)
+Autocorrelation is often used for low-frequency $f_0$ estimation.
+It is the process of comparing a signal with a delayed version of
+itself to find periodic patterns.
+
+Correlation was calculated by SciPy function \func{correlate}, Matlab
+function \func{corr}; autocorrelation by providing the same signal to
+the two arguments.
+This produces a symmetric triangular signal shape with peaks
+indicating delay values of high correlation.
+
+The autocorrelation vector can be calculated block-wise and plotted,
+producing a spectrogram-like image. \todo{figure}
+
+For each window, the horizontal location of the first peak to the
+right of the triangle apex was found, representing a single period.
+From this, frequency was calculated.
+
+(Joe/Steve)
 
 \subsection{Visualized range/variance}
 
@@ -71,7 +151,7 @@ Plotting linear regression angle and deviation size. (Joe)
 
 \subsection{Covariance/correlation analysis}
 
-(Joe/Steve)
+(Steve)
 
 \subsection{Max/min over various window sizes}
 
