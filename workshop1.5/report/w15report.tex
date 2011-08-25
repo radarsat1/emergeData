@@ -109,7 +109,7 @@ Zero-crossings in the positive direction were detected and linear
 interpolation was used to find the sub-sample position.
 Frequency was then calculated by dividing the period.
 
-The notion of ``periodicity'' was taken to mean the inverse of the
+The notion of ``periodicity'' was taken to mean the opposite of the
 deviation from the mean frequency.
 That is to say, a signal whose frequency is changing often should be
 thought of as having low periodicity, and a signal with a fairly
@@ -126,6 +126,15 @@ data.
 
 \subsubsection{Autocorrelation}
 
+\begin{figure}
+\includegraphics[width=0.5\textwidth]{images/workshop_autocorr_10hz_m1.png}
+\includegraphics[width=0.5\textwidth]{images/workshop_all_autocorr_f0_10hz.png}
+\caption{(Left) Autocorrelation $f_0$ estimation for two window sizes
+  (1000 points, 500 points) for Minibee~1, and the difference between
+  them.  (Right) Average of same over all minibees.}
+\label{autof0}
+\end{figure}
+
 Autocorrelation is often used for low-frequency $f_0$ estimation.
 It is the process of comparing a signal with a delayed version of
 itself to find periodic patterns.
@@ -133,8 +142,8 @@ itself to find periodic patterns.
 Correlation was calculated by SciPy function \func{correlate}, Matlab
 function \func{corr}; autocorrelation by providing the same signal to
 the two arguments.
-This produces a symmetric triangular signal shape with peaks
-indicating delay values of high correlation.
+This produces a symmetric triangular shape with peaks indicating delay
+values of high correlation.
 
 The autocorrelation vector can be calculated block-wise and plotted,
 producing a spectrogram-like image. \todo{figure}
@@ -143,7 +152,25 @@ For each window, the horizontal location of the first peak to the
 right of the triangle apex was found, representing a single period.
 From this, frequency was calculated.
 
-(Joe/Steve)
+It was found that the $f_0$ estimation tended to vary quite a lot
+depending on the window size used.
+It is likely that the peak picking algorithm for analysis of the
+correlation vector should be more intelligent to avoid choosing the
+wrong harmonic, perhaps using likelihood based on surrounding blocks.
+Results of two window sizes (1000 points and 500 points) can be seen
+in Fig.~\ref{autof0}.
+
+This was performed for each minibee, and the average was taken.  It
+became clear that the $f_0$ estimation was quite steady during periods
+of high activity, but gave a significant amount of variance during
+low-activity periods.
+
+Due to this variance in the frequency estimation, it is not yet clear
+how well this can be used to determine periodicity.  However, from
+visualizing the autocorrelation-gram, it is perhaps more likely that
+using the full correlation vector, or the relative locations and
+heights of significant peaks, could produce a more salient indication
+of gesture characteristics.
 
 \subsection{Visualized range/variance}
 
