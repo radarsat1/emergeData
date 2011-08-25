@@ -178,7 +178,46 @@ Plotting linear regression angle and deviation size. (Joe)
 
 \subsection{Covariance/correlation analysis}
 
-(Steve)
+\begin{figure}
+\includegraphics[width=0.5\textwidth]{images/corr_cov.png}
+\includegraphics[width=0.5\textwidth]{images/cov_groups_1106.png}
+\caption{(Left) Sum of correlation and covariance matrices across all
+  minibees.  Covariance is an excellent indicator of common activity.
+  (Right) Average covariance across pairs within all possible
+  sub-groups of minibees for a window at time 1106--1173.  Some
+  outliers are identified.}
+\label{covgroups}
+\end{figure}
+
+Correlation and covariance across all minibees was explored as a means
+to estimate relationships between accelerometer activity.
+SciPy functions \func{correlate} and \func{cov} produce a matrix that
+indicates the corresponding relationship between each pair of signals.
+This was computed block-wise on the accelerometer magnitude and summed
+to produce graphs seen on the left of Fig.~\ref{covgroups}.
+
+It is clear that the total covariance shows presence or non-presence
+of common group activity, at least for high-energy activity.
+It is possible that correlation may provide useful information for
+low-energy activities, though it may be difficult to distinguish from
+noise.
+This has not yet been tested.
+
+Next, it was attempted to identify groups within the minibee data
+which had particularly high covariance.
+The powerset of the list of minibees was computed, producing 247
+sub-groups.
+For each of group, all pair combinations' covariance values were averaged.
+
+The right side of Fig.~\ref{covgroups} shows the result for one window
+during the first activity period, where the horizontal ordering has
+smaller groups to the left and larger groups to the right of the
+graph.
+Therefore more averaging of the covariance occurs from left to right.
+Some outliers are identified in the upper-left quadrant of the graph.
+Of these, it is interesting that some groups do not intersect.
+For example, (3,7), (1,9) and (2,5,8) seem to be covarying
+within-group but not between each other.
 
 \subsection{Max/min over various window sizes}
 
