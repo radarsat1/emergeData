@@ -9,6 +9,7 @@
 \newcommand{\emerge}{\textsc{[E]merge}\xspace}
 \newcommand{\todo}[1]{\emph{To do: #1}}
 \newcommand{\func}[1]{\texttt{#1}}
+\newcommand{\url}[1]{\texttt{#1}}
 
 \begin{document}
 \maketitle
@@ -74,15 +75,60 @@ The accelerometer signal is a 3-vector in Cartesian coordinates, from
 which a magnitude can be taken by converting to polar coordinates:
 
 \begin{align}
-\textrm{mag}(x) &= \sqrt{x_1^2 + x_1^2 + x_1^2}
+\textrm{mag}(x) &= \sqrt{x_1^2 + x_2^2 + x_3^2}
 \end{align}
 
 The amplitude of the signal is then determined on a block-wise basis
 by method of root mean square (RMS), calculated as,
 \begin{align}
-\textrm{RMS}(m_w) &= \sqrt\frac{\sum^n_{i=1}{m_w(i)}}{n},
+\textrm{RMS}(m_w) &= \sqrt\frac{\sum^n_{i=1}{m_w(i)}}{n}
 \end{align}
 where $m_w$ is window $w$ of the magnitude signal $m$.
+
+\subsection{Standard statistics over magnitude}
+
+Following an idea by Hubert Wassner\footnote{\url{http://professeurs.esiea.fr/wassner/?2008/02/01/119-reconnaissance-de-mouvement}} we used the maximum and minimum values of the magnitude over different time windows:
+
+\begin{align}
+\textrm{min}(m_w) &= \textrm{min}_{i=1}^n m_w(i)\\
+\textrm{max}(m_w) &= \textrm{max}_{i=1}^n m_w(i)\\
+\end{align}
+
+\begin{figure}
+\includegraphics[width=0.5\textwidth]{images/plot--min_mag-max_mag--all--standing_fistpump_jumping_no-other.png}
+\includegraphics[width=0.5\textwidth]{images/plot--max_10-max_100--all--standing_jumping_fistpump_no-other.png}
+\caption{(Left) Min vs max magnitude over a window of 10 samples. (Right) Max magnitude over two different window sizes (10 and 100). Both figures show a clear distinction between the ``jumping'' and ``fistpump'' tags. However, those statistics don't seem to be helpful to differentiate those tags from ``standing''.}
+\label{minmaxf0}
+\end{figure}
+
+We also tried with the standard deviation and mean over different time windows:
+\begin{align}
+\bar{m}_w &= \frac{1}{n}\sum_{i=1}^n m_w(i)\\
+\textrm{stddev}(m_w) &= \sqrt{\frac{1}{n}\sum_{i=1}^n (m_w(i) - \bar{m}_w)^2}
+\end{align}
+
+\subsection{Jerk magnitude}
+
+The jerk is the rate of change of acceleration, in other words, how the ``acceleration accelerates''. We approximate it by computing the change in acceleration between two samples:
+
+\begin{align}
+j_i(t) = \textrm{jerk}(x_i(t)) &= \frac{1}{\tau} [ x_i(t) - x_i(t-\tau) ]
+\end{align}
+
+The jerk $j$ of acceleration vector $x$ is thus also a three-dimensional vector. The magnitude of the jerk can thus be computed the same way as for the magnitude of $x$:
+
+\begin{align}
+\textrm{mag}(j) &= \sqrt{j_1^2 + j_2^2 + j_3^2}
+\end{align}
+
+Notice that we can similarly compute min, max, standard deviation and average as we would do with the acceleration.
+
+\begin{figure}
+\includegraphics[width=0.5\textwidth]{images/plot--frame-rms--all--jumping_fistpump_standing.png}
+\includegraphics[width=0.5\textwidth]{images/plot--frame-jrms--all--jumping_fistpump_standing.png}
+\caption{Comparison between RMS (left) and jerk (right) over the data. As this figure shows, the jerk doesn't seem to add much information to the RMS.}
+\label{rmsvsjerkf0}
+\end{figure}
 
 \subsection{Frequency and periodicity}
 
@@ -218,14 +264,6 @@ Some outliers are identified in the upper-left quadrant of the graph.
 Of these, it is interesting that some groups do not intersect.
 For example, (3,7), (1,9) and (2,5,8) seem to be covarying
 within-group but not between each other.
-
-\subsection{Max/min over various window sizes}
-
-(Sofian)
-
-\subsection{Jerk}
-
-(Sofian)
 
 \section{Comparison methods}
 
