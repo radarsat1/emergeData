@@ -45,13 +45,16 @@ def plot_them():
         plot_suj_gesture(i,2)
         plot_suj_gesture(i,3)
         plot_suj_gesture(i,4)
-    show()
 
 def evaluate_with_classifier():
     all_cors = [get_cors(s,g) for s in range(6) for g in range(5)]
+    [c.pop('autocorrelation') for c in all_cors]
+    [c.pop('axes_correlation') for c in all_cors]
     operations.classifier.fann_evaluate_features(all_cors,
                                                  max_iterations=1000,
                                                  num_hidden=10,
                                                  learning_rate=0.95)
 
+plot_them()
 evaluate_with_classifier()
+show()
