@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import pyfann.libfann as fann
-from pylab import fill_between, plot, subplot, show, ylabel, ones, ylim, array
+from pylab import *
 
 def fann_evaluate_features(blocks, max_iterations=1000,
                            num_hidden=7, learning_rate=0.97):
@@ -29,9 +29,8 @@ def fann_evaluate_features(blocks, max_iterations=1000,
             for f in features:
                 if b.has_key(f):
                     d = b[f][i,:]
-                    r = (d.max()-d.min())
-                    if r != 0.0:
-                        d = (d-d.min())/r
+                    if any(isnan(d)):
+                        raise Exception("NaN found in feature vector")
                     print >>datafile, ' '.join([str(x) for x in d]),
                 else:
                     print >>datafile, ' '.join(['0']*vecwidths[f])
@@ -53,7 +52,9 @@ def fann_evaluate_features(blocks, max_iterations=1000,
     net.set_learning_rate(learning_rate)
 
     # net.set_activation_function_output(fann.COS_SYMMETRIC)
+    # net.set_activation_function_output(fann.GAUSSIAN)
     net.set_activation_function_output(fann.SIGMOID_SYMMETRIC)
+    # net.set_activation_function_output(fann.SIGMOID)
     # net.set_activation_function_output(fann.SIGMOID_STEPWISE)
     # net.set_activation_function_output(fann.GAUSSIAN_SYMMETRIC)
     # net.set_activation_function_output(fann.ELLIOT_SYMMETRIC)
@@ -75,9 +76,6 @@ def fann_evaluate_features(blocks, max_iterations=1000,
             for f in features:
                 if b.has_key(f):
                     d = b[f][i,:]
-                    r = (d.max()-d.min())
-                    if r != 0.0:
-                        d = (d-d.min())/r
                     v += list(d)
                 else:
                     v += [0]*vecwidths[f]

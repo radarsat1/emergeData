@@ -22,9 +22,14 @@ def get_cors(s,g):
                                        features.blockbased.axes_correlation,
                                        'axes_correlation',
                                        size=1024, hopsize=16)
+    cor['tags'] = ['gesture%d'%g] #, 'subject%d'%s]
+    features.blockbased.correlation_reduce(cor, 'axes_correlation',
+                                           'axes_correlation_reduced')
+
     cors = {'time': ac['time']}
-    cors['autocorrelation'] = ac['autocorrelation'][:,::10]
-    cors['axes_correlation'] = cor['axes_correlation'][:,::10]
+    cors['autocorrelation'] = ac['autocorrelation']#[:,::10]
+    cors['axes_correlation'] = cor['axes_correlation']#[:,::10]
+    cors['axes_correlation_reduced'] = cor['axes_correlation_reduced']
     cors['subject'] = s
     cors['tags'] = ['gesture%d'%g] #, 'subject%d'%s]
     return cors
@@ -32,10 +37,15 @@ def get_cors(s,g):
 def plot_suj_gesture(s,g):
     cors = get_cors(s,g)
 
-    subplot(5,2,g*2+1)
-    operations.display.matrixtimeplot(cors, 'autocorrelation')
-    subplot(5,2,g*2+2)
-    operations.display.matrixtimeplot(cors, 'axes_correlation')
+    subplot(5,3,g*3+1)
+    #operations.display.matrixtimeplot(cors, 'autocorrelation')
+    plot(cors['autocorrelation'][0])
+    subplot(5,3,g*3+2)
+    #operations.display.matrixtimeplot(cors, 'axes_correlation')
+    #plot(cors['axes_correlation'][0])
+    [plot(b,alpha=0.2) for b in cors['axes_correlation']]
+    subplot(5,3,g*3+3)
+    [plot(b,alpha=0.2) for b in cors['axes_correlation_reduced']]
 
 def plot_them():
     for i in range(3):
