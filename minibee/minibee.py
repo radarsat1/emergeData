@@ -51,6 +51,7 @@ class Minibee(object):
     def run(self):
         while True:
             line = self.inp.next()
+            f = None
             try:
                 f = {
                     's': self.on_serial,
@@ -60,7 +61,7 @@ class Minibee(object):
                     }[line[0]]
             except KeyError:
                 print >>sys.stderr, 'error (%c):'%line[0],line
-            f(line)
+            if f: f(line)
 
     def on_serial(self, line):
         """Node announced itself, it's waiting for an ID assignment. Add it to our local list of nodes."""
@@ -127,7 +128,7 @@ class Minibee(object):
             m = msgid * len(data)/3
             #print 'data','len=%d'%len(d),d
             [self.datafunc(nodeid, m+i/3, data[i:i+3])
-             for i in range(0,len(data),3)]
+             for i in range(0,len(data)/3*3,3)]
         else:
             print 'data', line[1:]
 
