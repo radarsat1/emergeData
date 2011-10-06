@@ -22,19 +22,19 @@ def stream_block_processor(t,a):
             d = {'time':times, 'accel':accels}
             features.basic.magnitude(d)
             features.basic.hipassed(d,2,0.2)
-            cor1 = features.blockbased.windowed(d, 'mag',
-                                                features.blockbased.autocorrelation,
-                                                'autocorrelation',
-                                                size=1024, hopsize=16)
-            cor2 = features.blockbased.windowed(d, 'hipassed',
-                                                features.blockbased.axes_correlation,
-                                                'axes_correlation',
-                                                size=1024, hopsize=16)
-            cor2['autocorrelation'] = cor1['autocorrelation']
+            cor = features.blockbased.windowed(d, 'hipassed',
+                                               features.blockbased.axes_correlation,
+                                               'axes_correlation',
+                                               size=1024, hopsize=16)
+            features.blockbased.correlation_reduce(cor, 'axes_correlation',
+                                                   'axes_correlation_reduced')
             times[:1024] = times[-1024:]
             accels[:1024] = accels[-1024:]
             pos = 1024
-            t, a = yield cor2
+            # Throw out everything but the reduced data
+            t, a = yield {'axes_correlation_reduced':
+                              cor['axes_correlation_reduced'],
+                          'time': cor['time']}
         else:
             t, a = yield None
 

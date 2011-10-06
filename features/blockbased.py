@@ -77,7 +77,6 @@ def fit_gaussian(x,y):
 def correlation_peaks(data, correlation_field, result_field):
     dat = data[correlation_field]
     res = []
-    gesture = int(data['tags'][0].split('gesture')[1])
     for d in dat:
         L = d.shape[0]
         g = fit_gaussian(arange(L/4,L*3/4), d[L/4:L*3/4])
@@ -114,7 +113,6 @@ def correlation_peaks(data, correlation_field, result_field):
 def correlation_reduce(data, correlation_field, result_field):
     dat = data[correlation_field]
     res = []
-    gesture = int(data['tags'][0].split('gesture')[1])
     for d in dat:
         L = d.shape[0]
         g = fit_gaussian(arange(L/4,L*3/4), d[L/4:L*3/4])
@@ -130,7 +128,6 @@ def correlation_reduce(data, correlation_field, result_field):
 def correlation_reduce(data, correlation_field, result_field):
     dat = data[correlation_field]
     res = []
-    gesture = int(data['tags'][0].split('gesture')[1])
     for d in dat:
         f = abs(fft(d))
         f = f[:len(f)/2]
