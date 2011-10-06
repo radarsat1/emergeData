@@ -9,6 +9,15 @@ import features.blockbased
 from minibee import Minibee
 import serial
 
+dev = None
+try:
+    import mapper
+    dev = mapper.device("minibee",9000)
+    sig_centroid = dev.add_output("/centroid", 'f')
+    sig_slope = dev.add_output("/slope", 'f')
+except:
+    print 'Continuing without libmapper support.'
+
 def stream_block_processor(t,a):
     """Break up an incoming stream into 1024-sized blocks. Add 16
     extra samples to make the block-based analysis pull out a single
@@ -17,8 +26,12 @@ def stream_block_processor(t,a):
     accels = zeros((1024+16,3))
     pos = 0
     while True:
-        times[pos] = t
-        accels[pos] = a
+        try:
+            times[pos] = t
+            accels[pos] = a
+        except Exception, e:
+            print 'exception', t, a
+            raise e
         pos += 1
         if pos >= (1024+16):
             d = {'time':times, 'accel':accels}
@@ -80,6 +93,9 @@ def test_minibee():
     time = []
     tcors = []
     def minibee_cb(nodeid, msgid, d):
+        # libmapper poll
+        if dev: dev.poll()
+
         if nodeid != this_nodeid:
             print 'Unknown node',nodeid
             return
@@ -88,7 +104,15 @@ def test_minibee():
         cor = proc.send((t[0], d))
         if cor!=None:
             time.append(t[0])
-            tcors.append(cor['axes_correlation_reduced'][0])
+            c = cor['axes_correlation_reduced'][0]
+
+            # Update mapper signals
+            if dev:
+                sig_centroid.update(c[0])
+                sig_slope.update(c[0])
+
+            # Collect and display using matplotlib
+            tcors.append(c)
             clf()
             plot(time, [c[0] for c in tcors])
             plot(time, [c[1] for c in tcors])
