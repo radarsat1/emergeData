@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 
 """Implements unidirectional variant of the instantaneous covariance
 and correlation filters described in Barbosa, Déchaine,
