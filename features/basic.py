@@ -14,7 +14,7 @@ def magnitude(d):
 def hipassed(d,o,c):
     if d.has_key('hipassed'): return
     a = d['accel']
-    b = butter(o,c,'low')
+    b = butter(o,c,'high')
     d['hipassed'] = array([lfilter(b[0], b[1], a[:,0]),
                            lfilter(b[0], b[1], a[:,1]),
                            lfilter(b[0], b[1], a[:,2])]).T

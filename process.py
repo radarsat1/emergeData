@@ -15,7 +15,7 @@ def get_cors(s,g):
     d['time'] = d['time'][:1024+16]
     d['accel'] = d['accel'][:1024+16]
     features.basic.magnitude(d)
-    features.basic.hipassed(d,2,0.2)
+    features.basic.hipassed(d,2,0.01)
     ac = features.blockbased.windowed(d, 'mag',
                                       features.blockbased.autocorrelation,
                                       'autocorrelation',
