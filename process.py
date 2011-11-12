@@ -16,6 +16,9 @@ def get_cors(s,g):
     d['accel'] = d['accel'][:1024+16]
     features.basic.magnitude(d)
     features.basic.hipassed(d,2,0.01)
+    sr = 1.0/average(d['time'][1:]-d['time'][:-1])
+    freq = 0.8
+    features.basic.axes_correlation2d(d,freq/sr*pi*2,arange(10)*100)
     ac = features.blockbased.windowed(d, 'mag',
                                       features.blockbased.autocorrelation,
                                       'autocorrelation',
@@ -34,24 +37,26 @@ def get_cors(s,g):
     cors['axes_correlation_reduced'] = cor['axes_correlation_reduced']
     cors['subject'] = s
     cors['tags'] = ['gesture%d'%g] #, 'subject%d'%s]
-    return cors
+    return d, cors
 
 def plot_suj_gesture(s,g):
-    cors = get_cors(s,g)
+    d, cors = get_cors(s,g)
 
-    subplot(5,3,g*3+1)
+    subplot(5,4,g*4+1)
     #operations.display.matrixtimeplot(cors, 'autocorrelation')
     plot(cors['autocorrelation'][0])
-    subplot(5,3,g*3+2)
+    subplot(5,4,g*4+2)
     #operations.display.matrixtimeplot(cors, 'axes_correlation')
     #plot(cors['axes_correlation'][0])
     [plot(b,alpha=0.2) for b in cors['axes_correlation']]
-    subplot(5,3,g*3+3)
+    subplot(5,4,g*4+3)
     [plot(b,alpha=0.2) for b in cors['axes_correlation_reduced']]
+    subplot(5,4,g*4+4)
+    [plot(b,alpha=0.1) for b in d['axes_cor2d']]
 
 def plot_them():
     for i in range(3):
-        figure(i+1)
+        figure(i+1).clear()
         plot_suj_gesture(i,0)
         plot_suj_gesture(i,1)
         plot_suj_gesture(i,2)
@@ -59,13 +64,24 @@ def plot_them():
         plot_suj_gesture(i,4)
 
 def evaluate_with_classifier():
-    all_cors = [get_cors(s,g) for s in range(6) for g in range(5)]
+    cs = [get_cors(s,g) for s in range(6) for g in range(5)]
+    all_ds, all_cors = zip(*cs)
     [c.pop('autocorrelation') for c in all_cors]
     [c.pop('axes_correlation') for c in all_cors]
     operations.classifier.fann_evaluate_features(all_cors,
                                                  max_iterations=1000,
                                                  num_hidden=10,
                                                  learning_rate=0.95)
+
+    # cs = [get_cors(s,g) for s in range(6) for g in range(5)]
+    # all_ds, all_cors = zip(*cs)
+    # [c.pop('hipassed') for c in all_ds]
+    # [c.pop('accel') for c in all_ds]
+    # [c.pop('mag') for c in all_ds]
+    # operations.classifier.fann_evaluate_features(all_ds,
+    #                                              max_iterations=1000,
+    #                                              num_hidden=10,
+    #                                              learning_rate=0.95)
 
 plot_them()
 evaluate_with_classifier()

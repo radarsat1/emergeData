@@ -45,7 +45,8 @@ def inst_correlation(w):
         cxy=cov1.send((x,y))
         cxx=cov2.send((x,x))
         cyy=cov3.send((y,y))
-        cor = cxy/sqrt(cxx*cyy)
+        s = sqrt(cxx*cyy)
+        cor = (cxy/s if s!=0 else 0)
 
 def inst_correlation_2d(w,delays):
     """Generate the correlation vector for a set of delays.  `w' is
