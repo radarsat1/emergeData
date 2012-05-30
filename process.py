@@ -4,6 +4,7 @@ from pylab import *
 from data import gestures_idmil_230811
 import operations.display
 import operations.classifier
+import operations.pca
 import features.basic
 import features.blockbased
 
@@ -104,7 +105,33 @@ def plot_reduced_correlation():
     figure(2)
     title("Reduced correlation by subject")
 
+def plot_pca2():
+    cs = [get_cors(s,g) for s in range(6) for g in range(5)]
+    all_ds, all_cors = zip(*cs)
+    trans = operations.pca.get_pca_transform(all_cors, numpcs=2,
+                   feature='axes_correlation')
+
+    figure(1).clear()
+    figure(2).clear()
+    for cor in all_cors:
+        c = 'rgbymk'[int(cor['tags'][0][-1:])]
+        d = 'rgbymk'[cor['subject']]
+
+        # Apply PCA transform
+        pcomp = dot(trans, cor['axes_correlation'].T)
+
+        # Take first two components
+        figure(1)
+        plot(pcomp[0,:], pcomp[1,:], '%c-'%c)
+        figure(2)
+        plot(pcomp[0,:], pcomp[1,:], '%c-'%d)
+    figure(1)
+    title("Axes correlation PCA1+2 by gesture")
+    figure(2)
+    title("Axes correlation PCA1+2 by subject")
+
 plot_them()
-evaluate_with_classifier()
 plot_reduced_correlation()
+plot_pca2()
+evaluate_with_classifier()
 show()
