@@ -12,8 +12,8 @@ data = gestures_idmil_230811.load_data()
 def get_cors(s,g):
     d = {'time': data[s][g][:,0],
          'accel': data[s][g][:,1:]}
-    d['time'] = d['time'][:1024+16]
-    d['accel'] = d['accel'][:1024+16]
+    # d['time'] = d['time'][:1024+16]
+    # d['accel'] = d['accel'][:1024+16]
     features.basic.magnitude(d)
     features.basic.hipassed(d,2,0.01)
     sr = 1.0/average(d['time'][1:]-d['time'][:-1])
@@ -83,6 +83,28 @@ def evaluate_with_classifier():
     #                                              num_hidden=10,
     #                                              learning_rate=0.95)
 
+def plot_reduced_correlation():
+    cs = [get_cors(s,g) for s in range(6) for g in range(5)]
+    all_ds, all_cors = zip(*cs)
+    figure(1).clear()
+    figure(2).clear()
+    for cor in all_cors:
+        c = 'rgbymk'[int(cor['tags'][0][-1:])]
+        d = 'rgbymk'[cor['subject']]
+        figure(1)
+        plot (cor['axes_correlation_reduced'][:,0],
+              cor['axes_correlation_reduced'][:,1],
+              '%c-'%c)
+        figure(2)
+        plot (cor['axes_correlation_reduced'][:,0],
+              cor['axes_correlation_reduced'][:,1],
+              '%c-'%d)
+    figure(1)
+    title("Reduced correlation by gesture")
+    figure(2)
+    title("Reduced correlation by subject")
+
 plot_them()
 evaluate_with_classifier()
+plot_reduced_correlation()
 show()
