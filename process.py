@@ -55,6 +55,36 @@ def plot_suj_gesture(s,g):
     subplot(5,4,g*4+4)
     [plot(b,alpha=0.1) for b in d['axes_cor2d']]
 
+def plot_autocor():
+    def plot_suj_gest_autocor(s,g):
+        d, cors = get_cors(s,g)
+    
+        subplot(5,1,g*1+1)
+        plot(cors['autocorrelation'][0],'k', alpha=0.3)
+        xticks([])
+        yticks([])
+        if (s==0):
+            ylabel('Gesture %d'%(g))
+    
+    for i in range(6):
+        for j in range(5):
+            plot_suj_gest_autocor(i,j)
+
+def plot_axescor():
+    def plot_suj_gest_autocor(s,g):
+        d, cors = get_cors(s,g)
+    
+        subplot(5,1,g*1+1)
+        plot(cors['axes_correlation'][0],'k', alpha=0.3)
+        xticks([])
+        yticks([])
+        if (s==0):
+            ylabel('Gesture %d'%(g))
+    
+    for i in range(6):
+        for j in range(5):
+            plot_suj_gest_autocor(i,j)
+
 def plot_them():
     for i in range(3):
         figure(i+1).clear()
@@ -131,6 +161,8 @@ def plot_pca2():
     title("Axes correlation PCA1+2 by subject")
 
 plot_them()
+plot_autocor()
+plot_axescor()
 plot_reduced_correlation()
 plot_pca2()
 evaluate_with_classifier()
