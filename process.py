@@ -135,6 +135,24 @@ def plot_reduced_correlation():
     figure(2)
     title("Reduced correlation by subject")
 
+def plot_axesvs():
+    for s in range(6):
+        figure(s+1)
+        for g in range(5):
+            subplot(3,2,g+1)
+            d, c = get_cors(s,g)
+            plot(d['hipassed'][:,0], d['hipassed'][:,1], color='b')
+            plot(d['hipassed'][:,1], d['hipassed'][:,2], color='g')
+            plot(d['hipassed'][:,0], d['hipassed'][:,2], color='r')
+
+def plot_accvel():
+    from scipy.signal import lfilter
+    for i in range(5):
+        subplot(3,2,i+1)
+        d, c = get_cors(0,i)
+        plot(d['hipassed'][:,0],
+             lfilter([1],[1,-1],d['hipassed'][:,0]))
+
 def plot_pca2():
     cs = [get_cors(s,g) for s in range(6) for g in range(5)]
     all_ds, all_cors = zip(*cs)
@@ -166,4 +184,6 @@ plot_axescor()
 plot_reduced_correlation()
 plot_pca2()
 evaluate_with_classifier()
+plot_accvel()
+plot_axesvs()
 show()
