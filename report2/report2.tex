@@ -652,6 +652,21 @@ instances, but when instances are made available in the main code
 branch it will ease testing, experimental mapping, and scalability
 when dealing with large numbers of remote agents.
 
+Support for using libmapper from SuperCollider has also been in the
+works by Mark Zadel (IDMIL).
+He has succeeded in making bindings for SC that allow creation of
+devices and signals, responding to incoming signals and sending
+outgoing signals.
+He has also written bindings to the instances feature, in order to
+implement a mapping layer in his Different Strokes software; a test
+using instances from DS to control sound playback in SC has been
+successful.
+The SC bindings are not yet released, and distribution may be
+difficult due to SC's lack of a plug-in system.
+Thus far development has taken place as a fork of the SC codebase, and
+may remain so unless some better method of distributing SC language
+extensions can be determined.
+
 \section{Vibrotactile feedback}
 
 As a somewhat peripheral project, Marcello Giordano (IDMIL) has
