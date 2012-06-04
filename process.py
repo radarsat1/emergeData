@@ -153,11 +153,14 @@ def plot_accvel():
         plot(d['hipassed'][:,0],
              lfilter([1],[1,-1],d['hipassed'][:,0]))
 
+tr = []
 def plot_pca2():
     cs = [get_cors(s,g) for s in range(6) for g in range(5)]
     all_ds, all_cors = zip(*cs)
     trans = operations.pca.get_pca_transform(all_cors, numpcs=2,
                    feature='axes_correlation')
+    tr.append(trans)
+    return
 
     figure(1).clear()
     figure(2).clear()
@@ -170,20 +173,20 @@ def plot_pca2():
 
         # Take first two components
         figure(1)
-        plot(pcomp[0,:], pcomp[1,:], '%c-'%c)
+        plot(pcomp[0,:], pcomp[1,:], '%co'%c)
         figure(2)
-        plot(pcomp[0,:], pcomp[1,:], '%c-'%d)
+        plot(pcomp[0,:], pcomp[1,:], '%co'%d)
     figure(1)
     title("Axes correlation PCA1+2 by gesture")
     figure(2)
     title("Axes correlation PCA1+2 by subject")
 
-plot_them()
-plot_autocor()
-plot_axescor()
-plot_reduced_correlation()
+# plot_them()
+# plot_autocor()
+# plot_axescor()
+# plot_reduced_correlation()
 plot_pca2()
-evaluate_with_classifier()
-plot_accvel()
-plot_axesvs()
+# evaluate_with_classifier()
+# plot_accvel()
+# plot_axesvs()
 show()

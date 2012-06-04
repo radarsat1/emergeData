@@ -1,0 +1,397 @@
+<html>
+  <head>
+    <script src="data.js"></script>
+    <script src="trans.js"></script>
+    <script src="hanning1024.js"></script>
+    <script>
+      var colours = ['blue','red','green','yellow',
+                     'orange','magenta','black'];
+
+      var g_suj = 1;
+      var g_gest = 1;
+
+      function array(n)
+      {
+        var x;
+        /*if (typeof Float32Array === 'undefined') */
+          x = new Array(n);
+        /*else {
+          x = new Float32Array(n);
+          x.slice = x.subarray;
+        }*/
+        return x;
+      }
+
+      function lfilter(filt, x)
+      {
+        var b = filt[0];
+        var a = filt[1];
+        var k, y, i;
+        var y = array(x.length);
+
+        for (k=0; k < x.length; k++)
+        {
+          var sum = 0;
+          for (i=0; i < b.length; i++)
+            if ((k-i) >= 0) sum += x[k-i]*b[i];
+          for (i=1; i < a.length; i++)
+            if ((k-i) >= 0) sum -= y[k-i]*a[i];
+          y[k] = sum;
+        }
+        return y;
+      }
+
+      function filterData()
+      {
+          // High-pass filter
+          var B = [ 0.97803048, -1.95606096,  0.97803048];
+          var A = [ 1.        , -1.95557824,  0.95654368];
+
+          var s, g, axis;
+          for (s=0; s < 6; s++)
+            for (g=0; g < 5; g++)
+              for (axis=0; axis < 3; axis++)
+                data[s][g][axis] = lfilter([B,A], data[s][g][axis]);
+      }
+
+      function abs(x)
+      {
+        var i, y = array(x.length);
+        for (i=0; i < x.length; i++)
+          y[i] = (x[i]<0) ? -x[i] : x[i];
+        return y;
+      }
+
+      function sum()
+      {
+        var L = arguments[0].length;
+        var i, j, y = array(L);
+        for (i=0; i < L; i++) {
+          y[i] = 0;
+          for (j=0; j < arguments.length; j++)
+            y[i] += arguments[j][i];
+        }
+        return y;
+      }
+
+      function scale(x, m)
+      {
+        var i, y = array(x.length);
+        for (i = 0; i < x.length; i++)
+          y[i] = x[i] * m;
+        return y;
+      }
+
+      function max(x)
+      {
+        var i, m = null;
+        for (i = 0; i < x.length; i++)
+          if (x[i] > m)
+            m = x[i];
+        return m;
+      }
+
+      function mult(x1, x2)
+      {
+        var i, y = array(x1.length);
+        for (i = 0; i < x1.length; i++)
+          y[i] = x1[i] * x2[i];
+        return y;
+      }
+
+      function correlate(x1, x2)
+      {
+        var sum, a, b;
+        var i,j,o;
+        var cor = array(x1.length + x2.length - 1);
+
+        for (i=0; i < x1.length + x2.length - 1; i++) {
+            sum = 0;
+            for (j=0; j < x2.length; j++) {
+                if ((i-j) < x1.length && (i-j) >= 0)
+                    a = x1[i-j];
+                else
+                    a = 0;
+                o = x1.length-1-j;
+                if (o < x1.length && o >= 0)
+                    b = x2[o];
+                else
+                    b = 0;
+                sum += a*b;
+            }
+            cor[i] = sum;
+        }
+        return cor;
+      }
+
+      // Matrix dot product
+      function dot(a, b)
+      {
+        var i,j,sum;
+        var c = new Array(a.length);
+        for (i=0; i < a.length; i++)
+          c[i] = new Array(b[0].length);
+          //c[i] = array(b[0].length);
+
+        for (i=0; i < a.length; i++) {
+          for (j=0; j < b[0].length; j++) {
+            sum = 0;
+            for (k=0; k < a[0].length; k++)
+              sum += a[i][k] * b[k][j];
+            c[i][j] = sum;
+          }
+        }
+        return c;
+      }
+
+      function drawArray(context, d, y, w, h)
+      {
+          var i,j,mx=-1000000,mn=100000;
+          for (i=0; i < d.length; i++) {
+            if (d[i] < mn) mn = d[i];
+            if (d[i] > mx) mx = d[i];
+          }
+  
+          context.strokeStyle = 'black';
+          context.beginPath();
+          context.moveTo(0, (d[0]-mn)/(mx-mn)*h + y);
+          for (i=1; i < d.length; i++) {
+            context.lineTo(i/d.length*w,
+                           (d[i]-mn)/(mx-mn)*h + y);
+          }
+          context.stroke();
+      }
+
+      function drawPC2D(x, y, g)
+      {
+          var canvas = document.getElementById("pc2");
+          var context = canvas.getContext("2d");
+          var extents = [[-20, -2], [-6, 4]];
+
+          context.fillStyle = colours[g];
+          context.strokeStyle = 'black';
+          context.beginPath();
+          context.arc((x-extents[0][0])
+                      / (extents[0][1]-extents[0][0])
+                      * canvas.width,
+                      (y-extents[1][0])
+                      / (extents[1][1]-extents[1][0])
+                      * canvas.width,
+                      3, 0, 2*Math.PI, true);
+          context.fill();
+          context.stroke();
+      }
+
+      function getCor(s, g, t)
+      {
+        var d = data[s][g];
+
+        var w1 = mult(hanning1024, d[0].slice(t,1024+t));
+        var w2 = mult(hanning1024, d[1].slice(t,1024+t));
+        var w3 = mult(hanning1024, d[2].slice(t,1024+t));
+        var cor1 = correlate(w1, w2);
+        var cor2 = correlate(w1, w3);
+        var cor3 = correlate(w2, w3);
+
+        var cor = sum(abs(cor1), abs(cor2), abs(cor3));
+        cor = scale(cor, 1.0/max(cor));
+        return cor;
+      }
+
+      function sendTimingInfo(t)
+      {
+        var xhr = new XMLHttpRequest();
+        var url = "savetiming.php?timing="+t;
+        xhr.open("GET", url, true);
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState != 4)  { return; }
+          if (xhr.status != 200)  {
+            //calculate = false;
+            setTimeout(function(){
+              var status = document.getElementById("status");
+              status.innerHTML = "Error sending timing info.<br/>";
+            }, 1000);
+            return;
+          }
+        }
+        try {
+          xhr.send(null);
+        } catch(e) {
+          //calculate = false;
+          setTimeout(function(){
+            var output = document.getElementById("output");
+            output.innerHTML += "Error sending timing info.<br/>";
+          }, 1000);
+        }
+      }
+
+      function drawTextBg(context)
+      {
+        var t = function(text, y, box) {
+          m = context.measureText(text);
+          if (box) {
+            context.fillStyle = '#eeeeff';
+            context.beginPath();
+            context.moveTo(0, y);
+            context.lineTo(400, y);
+            context.lineTo(400, y+80);
+            context.lineTo(0, y+80);
+            context.fill();
+          }
+          context.fillStyle = 'black';
+          context.fillText(text, 400-m.width, y+78);
+        }
+        t("Axis 1", 0, true);
+        t("Axis 2", 80, false);
+        t("Axis 3", 160, true);
+        t("Inter-axis correlation", 240, false);
+        t("Principle components", 320, true);
+      }
+
+      function drawSubjectGesture(s, g)
+      {
+        var canvas = document.getElementById("graph");
+        var context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        var output = document.getElementById("output");
+        var status = document.getElementById("status");
+        var axis;
+
+        drawTextBg(context);
+
+        for (axis = 0; axis < 3; axis ++)
+          drawArray(context, data[s][g][axis], 80*axis, canvas.width, 80);
+
+        var cor = getCor(s, g, 0);
+
+        var i, corT = new Array(cor.length);
+        for (i=0; i < cor.length; i++)
+          corT[i] = [cor[i]];
+
+        var pcs = dot(trans, corT);
+
+        var pcsT = new Array(pcs.length);
+        for (i=0; i < pcs.length; i++)
+          pcsT[i] = pcs[i][0];
+
+        drawArray(context, cor, 240, canvas.width, 80);
+        drawArray(context, pcsT, 320, canvas.width, 80);
+      }
+
+      function calculatePCs(s, g)
+      {
+        var canvas = document.getElementById("graph");
+        var context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        var output = document.getElementById("output");
+        var status = document.getElementById("status");
+        var axis;
+
+        drawTextBg(context);
+
+        var suj = document.getElementById("subject");
+        var gest = document.getElementById("gesture");
+        suj.value = s+1;
+        gest.value = g+1;
+
+        for (axis = 0; axis < 3; axis ++)
+          drawArray(context, data[s][g][axis], 80*axis, canvas.width, 80);
+
+        var doit = function(t, times) {
+          if ((t+1024) >= data[s][g][0].length) {
+            var i, a=0;
+            for (i=0; i < times.length; i++)
+              a += times[i];
+            output.innerHTML += [s,g] + ': average time = '
+                                + parseInt(a/times.length) + ' ms<br/>';
+
+            sendTimingInfo(parseInt(a/times.length));
+
+            g ++;
+            if (g >= 5) {
+              g = 0;
+              s ++;
+            }
+            if (s < 6)
+              calculatePCs(s, g);
+            return;
+          }
+
+          status.innerHTML = [s,g] + ': calculating ' + t;
+          var start = new Date();
+
+          var cor = getCor(s, g, t);
+
+          var i, corT = new Array(cor.length);
+          for (i=0; i < cor.length; i++)
+            corT[i] = [cor[i]];
+
+          var pcs = dot(trans, corT);
+
+          var pcsT = new Array(pcs.length);
+          for (i=0; i < pcs.length; i++)
+            pcsT[i] = pcs[i][0];
+
+          var time = new Date() - start;
+          times.push(time);
+
+          if (t==0) {
+            drawArray(context, cor, 240, canvas.width, 80);
+            drawArray(context, pcsT, 320, canvas.width, 80);
+          }
+
+          drawPC2D(pcs[0], pcs[1], g);
+
+          if (calculate)
+            setTimeout(function(){doit(t + 16, times);}, 0);
+          else {
+            status.innerHTML = '';
+          }
+        }
+        doit(0, []);
+      }
+
+      window.onload = function() {
+        filterData();
+        var suj = document.getElementById("subject");
+        var gest = document.getElementById("gesture");
+        var calc = document.getElementById("calc");
+        var stop = document.getElementById("stop");
+        suj.onchange = gest.onchange = function (e) {
+          drawSubjectGesture(suj.value-1, gest.value-1);
+        }
+        calc.onclick = function(){
+          var canvas = document.getElementById("pc2");
+          var context = canvas.getContext("2d");
+          context.clearRect(0,0,canvas.width,canvas.height);
+          calculate = true;
+          calculatePCs(0,0);
+        };
+        stop.onclick = function(){calculate = false;};
+        suj.onchange(0);
+        return;
+      }
+    </script>
+  </head>
+  <body>
+    <table width="400">
+      <tr><td>Subject:</td>
+        <td><input type="range" id="subject" min="1" max="6" value="1"/>
+      </td>
+      <td>
+      <input type="button" id="calc" value="Calc PCs"/>
+      <input type="button" id="stop" value="Stop"/>
+      </td>
+      </tr>
+      <tr><td>Gesture:</td>
+        <td><input type="range" id="gesture" min="1" max="5" value="1" />
+      </td></tr>
+    </table>
+    <p>
+      <canvas id="graph" width="400" height="400"></canvas>
+      <canvas id="pc2" width="400" height="400"></canvas>
+    </p>
+    <div id="status"></div>
+    <div id="output"></div>
+  </body>
+</html>
