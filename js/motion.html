@@ -1,0 +1,197 @@
+<html>
+<head>
+<title>Record motion sensors</title>
+<script>
+
+datalog = [];
+
+function add_data(data)
+{
+  for (var d in data) {
+    datalog.push(data[d]);
+  }
+  if (datalog.length > 1000) {
+    var logstat = document.getElementById('datalog');
+    logstat.innerHTML = 'Sending...';
+    send_log(datalog);
+    datalog = [];
+  }
+}
+
+function send_log(datalog) {
+  var log = '';
+  for (var d in datalog)
+    log += datalog[d] + '\n';
+
+  var xhr = new XMLHttpRequest();
+  var url = "motionlog.php";
+  xhr.open("POST", url, true);
+
+  xhr.setRequestHeader("Content-type", "multipart/form-data");
+  xhr.setRequestHeader("Content-length", log.length);
+  xhr.setRequestHeader("Connection", "close");
+
+  var logstat = document.getElementById('datalog');
+
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4) {
+      if (xhr.status == 200) {
+        logstat.innerHTML = xhr.responseText;
+      } else if (xhr.status == 404) {
+        send_log(datalog);  // try again, music server does this sometimes.
+      } else {
+        logstat.innerHTML = '[Error '+xhr.status+'] ' + xhr.responseText;
+      }
+    }
+  };
+
+  xhr.send(log);
+}
+
+window.onload = function() {
+  var outputMotion = document.getElementById('outputMotion');
+  var outputOrientation = document.getElementById('outputOrientation');
+  var outputGeolocation = document.getElementById('outputGeolocation');
+  var status = document.getElementById('status');
+
+  lastMotionTime = lastOrientationTime = lastGeolocationTime = new Date();
+
+  var motionTimes = [];
+  var orientationTimes = [];
+  var geolocationTimes = [];
+
+  var hasMotion = typeof window.ondevicemotion !== 'undefined';
+  if (hasMotion) {
+    window.ondevicemotion = function (e) {
+      var o = '';
+      var d = [];
+
+      var time = e.timeStamp-0;
+      motionTimes.push(time - lastMotionTime);
+      o += 'Interval: ' + (time - lastMotionTime) + '<br/>';
+      lastMotionTime = time;
+
+      if (typeof e.acceleration !== 'undefined' && e.acceleration != null) {
+        var a = e.acceleration;
+        o += [parseInt(a.x), parseInt(a.y), parseInt(a.z)] + '<br/>';
+        d.push('A:'+[time,a.x, a.y, a.z]);
+      } else {
+        o += 'No acceleration<br/>';
+      }
+
+      if (typeof e.accelerationIncludingGravity !== 'undefined'
+          && e.accelerationIncludingGravity !== null) {
+        var a = e.accelerationIncludingGravity;
+        o += [parseInt(a.x), parseInt(a.y), parseInt(a.z)] + '<br/>';
+        d.push('G:'+[time,a.x, a.y, a.z]);
+      } else
+        o += 'No accelerationIncludingGravity<br/>';
+
+      if (typeof e.rotationRate !== 'undefined' && e.rotationRate !== null) {
+        var a = e.rotationRate;
+        o += [parseInt(a.alpha), parseInt(a.beta), parseInt(a.gamma)] + '<br/>';
+        o += [a.webkitCompassAccuracy, a.webkitCompassHeading] + '<br/>';
+        d.push('R:'+[time,a.alpha,a.beta,a.gamma]);
+      } else
+        o += 'No rotationRate<br/>';
+
+      //outputMotion.innerHTML = o;
+
+      if (motionTimes.length >= 100) {
+        var i, avg=0, std=0;
+        for (i=0; i<motionTimes.length; i++)
+          avg += motionTimes[i];
+        avg /= motionTimes.length;
+        for (i=0; i<motionTimes.length; i++)
+          std += (motionTimes[i] - avg) * (motionTimes[i] - avg);
+        std = Math.sqrt(std / motionTimes.length);
+        outputMotion.innerHTML = 'Average=' + avg + ' Std=' + std;
+        motionTimes = [];
+      }
+
+      add_data(d);
+    }
+  }
+  else {
+    status.innerHTML += 'No motion info available.<br/>';
+  }
+
+  var hasOrientation = typeof window.ondeviceorientation !== 'undefined';
+  if (hasOrientation) {
+    window.ondeviceorientation = function (e) {
+      var o = '';
+      var d = [];
+
+      var time = e.timeStamp-0;
+      orientationTimes.push(time - lastOrientationTime);
+      o += 'Interval: ' + (time - lastOrientationTime) + '<br/>';
+      lastOrientationTime = time;
+
+      if (typeof e.alpha !== 'undefined' && e.alpha !== null) {
+        o += [parseInt(e.alpha), parseInt(e.beta), parseInt(e.gamma)] + '<br/>';
+        d.push('O:'+[time,e.alpha,e.beta,e.gamma]);
+      } else {
+        o += '(No alpha)<br/>';
+      }
+      if (typeof e.webkitCompassHeading !== 'undefined') {
+        o += [e.webkitCompassAccuracy, e.webkitCompassHeading] + '<br/>';
+        d.push('C:'+[time,e.webkitCompassAccuracy, e.webkitCompassHeading]);
+      } else {
+        o += '(No webkitCompassHeading)';
+      }
+
+      //outputOrientation.innerHTML = o;
+
+      if (orientationTimes.length >= 100) {
+        var i, avg=0, std=0;
+        for (i=0; i<orientationTimes.length; i++)
+          avg += orientationTimes[i];
+        avg /= orientationTimes.length;
+        for (i=0; i<orientationTimes.length; i++)
+          std += (orientationTimes[i] - avg) * (orientationTimes[i] - avg);
+        std = Math.sqrt(std / orientationTimes.length);
+        outputOrientation.innerHTML = 'Average=' + avg + ' Std=' + std;
+        orientationTimes = [];
+      }
+
+      add_data(d);
+    }
+  }
+  else {
+    status.innerHTML += 'No orientation info available.<br/>';
+  }
+
+
+  if (typeof navigator.geolocation.watchPosition !== 'undefined') {
+    navigator.geolocation.watchPosition(function (e) {
+      var d = [];
+      var time = (new Date())-0;
+      var interval = (time - lastGeolocationTime);
+      geolocationTimes.push(interval);
+      lastGeolocationTime = time;
+
+      d.push('L:'+[time,e.coords.latitude,e.coords.longitude]);
+
+      outputGeolocation.innerHTML = '' + [e.coords.latitude,
+                                          e.coords.longitude,
+                                          interval];
+
+      add_data(d);
+    });
+  }
+  else {
+    status.innerHTML += 'No geolocation info available.<br/>';
+  }
+}
+</script>
+</head>
+<body>
+<h3>DataLog:</h3>
+<div id="datalog"></div>
+<h3>Timing</h3>
+<p>Motion: <span id="outputMotion"></span>
+<p>Orientation: <span id="outputOrientation"></span>
+<p>Geolocation: <span id="outputGeolocation"></span>
+<div id="status"></div>
+</body>
+</html>
