@@ -5,8 +5,10 @@
  * http://idmil.org
  */
 
+/*
 load('hanning1024.js');
 load('trans.js');
+*/
 
 /* Create array storage of a desired length. */
 function array(n)

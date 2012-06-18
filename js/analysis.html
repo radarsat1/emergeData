@@ -1,0 +1,53 @@
+<html>
+<head>
+<script src="hanning1024.js"></script>
+<script src="trans.js"></script>
+<script src="analysis.js"></script>
+<script>
+function hookAccelerometers(func)
+{
+  var hasMotion = typeof window.ondevicemotion !== 'undefined';
+  if (hasMotion) {
+    window.ondevicemotion = function (e) {
+      if (typeof e.accelerationIncludingGravity !== 'undefined'
+          && e.accelerationIncludingGravity !== null)
+      {
+        func(e);
+      } else
+        status.innerHTML = 'No accelerationIncludingGravity<br/>';
+    }
+  }
+  else {
+    status.innerHTML = 'No motion info available.<br/>';
+  }
+}
+
+window.onload = function() {
+  var output = document.getElementById("output");
+  var ax = document.getElementById("ax");
+  var ay = document.getElementById("ay");
+  var az = document.getElementById("az");
+  var analysis = analyseAccelerometers(function(timestamp, pcs){
+        output.innerHTML = [timestamp,pcs] + '<br/>';// + output.innerHTML;
+    });
+
+  hookAccelerometers(function(e) {
+    var time = e.timeStamp-0;
+    var a = e.accelerationIncludingGravity;
+    ax.style.paddingRight = (a.x*10 + 100) + "px";
+    ay.style.paddingRight = (a.y*10 + 100) + "px";
+    az.style.paddingRight = (a.z*10 + 100) + "px";
+    analysis(time, [a.x, a.y, a.z]);
+  });
+}
+</script>
+</head>
+<body>
+  <i>On-line accelerometer analysis</i>
+  <div id="status"></div>
+  <br/><span id="ax" style="background-color:black;height:30px;">&nbsp;</span>
+  <br/><span id="ay" style="background-color:black;height:30px;">&nbsp;</span>
+  <br/><span id="az" style="background-color:black;height:30px;">&nbsp;</span>
+  <p>Output: <span id="output"></span>
+</body>
+</html>
