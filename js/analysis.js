@@ -93,17 +93,22 @@ function testHPF()
 function resampleWindow(seconds, rate, hop, func)
 {
     var len = rate * seconds;
+    var ms = seconds * 1000;
     var buffer = [];
+    var output = document.getElementById("output");
     return function(timestamp, data) {
         buffer.push({timestamp:timestamp, data:data});
-        if ((timestamp - buffer[0].timestamp) >= seconds) {
+        if ((timestamp - buffer[0].timestamp) >= ms) {
             /* linear interpolation */
-            var T = 1.0/rate;
+            var T = 1000.0/rate;
             var j = 1;
             var prev = buffer[0].timestamp;
             var next = buffer[1].timestamp;
-            var hoptime = prev + hop;
-            var hopj = 0;
+
+            var hoptime = null;
+            var hopj = null;
+            if (hop!==null)
+                hoptime = buffer[0].timestamp + hop*1000;
 
             var window = [];
             for (var i=0; i < data.length; i++)
@@ -119,7 +124,7 @@ function resampleWindow(seconds, rate, hop, func)
                     prev = next;
                     next = buffer[j].timestamp;
 
-                    if (hoptime >= prev && hoptime < next)
+                    if (hop!==null && hoptime >= prev && hoptime < next)
                         hopj = j;
                 }
 
@@ -132,7 +137,10 @@ function resampleWindow(seconds, rate, hop, func)
             /* callback */
             func(buffer[0].timestamp, window);
 
-            buffer = buffer.slice(hopj);
+            if (hopj!==null)
+                buffer = buffer.slice(hopj);
+            else
+                buffer = [];
         }
     }
 }
@@ -280,7 +288,7 @@ function pcaTransform(cor)
 function analyseAccelerometers(func)
 {
     hpf = [genHPF(), genHPF(), genHPF()];
-    return resampleWindow(10.24, 100, 2.56,
+    return resampleWindow(10.24, 100, null,
         function(timestamp, window) {
             var len = window[0].length;
             for (var axis = 0; axis < 3; axis++) {
