@@ -4,7 +4,7 @@ __all__ = ['windowed', 'windowed_by_axis',
            'autocorrelation', 'axes_correlation', 'correlation_reduce']
 
 from pylab import *
-from scipy.signal import hanning
+from scipy.signal import hanning, fftconvolve
 
 def windowed(data, name, f, fname, size=256, hopsize=128):
     d = data[name]
@@ -62,8 +62,9 @@ def axes_correlation(block):
                      [[x,y] for x in ax for y in ax if x != y]])
         cor = []
         for p in pairs:
-            cor.append(correlate(block[:,p[0]]*w, block[:,p[1]]*w,
-                                 mode='full'))
+            cor.append(fftconvolve(block[:,p[0]]*w,
+                                   (block[:,p[1]]*w)[::-1],
+                                   mode='full'))
         v = reduce(lambda x,y:abs(x)+abs(y), cor)
         return v / v.max()
 
