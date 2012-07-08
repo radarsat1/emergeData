@@ -4,6 +4,18 @@
 <script>
 
 datalog = [];
+gesture = 0;
+
+gesture_description = ['Button pushing',
+                       'Turning side to side',
+                       'Turning up and down',
+                       'Turning side to side with button pushing',
+                       'Turning up and down with button pushing',
+                       'Circles',
+                       'Circles with button pushing',
+                       'Beats',
+                       'Beats with button pushing',
+                       'Beats 2'];
 
 function add_data(data)
 {
@@ -74,7 +86,7 @@ window.onload = function() {
       if (typeof e.acceleration !== 'undefined' && e.acceleration != null) {
         var a = e.acceleration;
         o += [parseInt(a.x), parseInt(a.y), parseInt(a.z)] + '<br/>';
-        d.push('A:'+[time,a.x, a.y, a.z]);
+        d.push('A:'+[time, gesture, a.x, a.y, a.z]);
       } else {
         o += 'No acceleration<br/>';
       }
@@ -83,7 +95,7 @@ window.onload = function() {
           && e.accelerationIncludingGravity !== null) {
         var a = e.accelerationIncludingGravity;
         o += [parseInt(a.x), parseInt(a.y), parseInt(a.z)] + '<br/>';
-        d.push('G:'+[time,a.x, a.y, a.z]);
+        d.push('G:'+[time, gesture, a.x, a.y, a.z]);
       } else
         o += 'No accelerationIncludingGravity<br/>';
 
@@ -91,7 +103,7 @@ window.onload = function() {
         var a = e.rotationRate;
         o += [parseInt(a.alpha), parseInt(a.beta), parseInt(a.gamma)] + '<br/>';
         o += [a.webkitCompassAccuracy, a.webkitCompassHeading] + '<br/>';
-        d.push('R:'+[time,a.alpha,a.beta,a.gamma]);
+        d.push('R:'+[time, gesture, a.alpha,a.beta,a.gamma]);
       } else
         o += 'No rotationRate<br/>';
 
@@ -129,13 +141,13 @@ window.onload = function() {
 
       if (typeof e.alpha !== 'undefined' && e.alpha !== null) {
         o += [parseInt(e.alpha), parseInt(e.beta), parseInt(e.gamma)] + '<br/>';
-        d.push('O:'+[time,e.alpha,e.beta,e.gamma]);
+        d.push('O:'+[time, gesture, e.alpha,e.beta,e.gamma]);
       } else {
         o += '(No alpha)<br/>';
       }
       if (typeof e.webkitCompassHeading !== 'undefined') {
         o += [e.webkitCompassAccuracy, e.webkitCompassHeading] + '<br/>';
-        d.push('C:'+[time,e.webkitCompassAccuracy, e.webkitCompassHeading]);
+        d.push('C:'+[time, gesture, e.webkitCompassAccuracy, e.webkitCompassHeading]);
       } else {
         o += '(No webkitCompassHeading)';
       }
@@ -170,7 +182,7 @@ window.onload = function() {
       geolocationTimes.push(interval);
       lastGeolocationTime = time;
 
-      d.push('L:'+[time,e.coords.latitude,e.coords.longitude]);
+      d.push('L:'+[time, gesture, e.coords.latitude,e.coords.longitude]);
 
       outputGeolocation.innerHTML = '' + [e.coords.latitude,
                                           e.coords.longitude,
@@ -182,12 +194,28 @@ window.onload = function() {
   else {
     status.innerHTML += 'No geolocation info available.<br/>';
   }
+
+  setGesture = function(g) {
+      var gest = document.getElementById('outputGesture');
+      if (g <= gesture_description.length) {
+          gest.innerHTML = ''+g + '<br/>' + gesture_description[g-1];
+          gesture = g;
+          setTimeout(function(){setGesture(g+1);}, 30*1000);
+      }
+      else
+          gest.innerHTML = 'Done.';
+  };
+  setTimeout(function(){setGesture(1);}, 3*1000);
 }
 </script>
+<style>
+#gestDiv { float:right; font-size: 40pt; }
+</style>
 </head>
 <body>
 <h3>DataLog:</h3>
 <div id="datalog"></div>
+<p id="gestDiv">Gesture: <span id="outputGesture"></span>
 <h3>Timing</h3>
 <p>Motion: <span id="outputMotion"></span>
 <p>Orientation: <span id="outputOrientation"></span>
