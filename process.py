@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
 from pylab import *
-from data import gestures_idmil_230811
+from data import gestures_idmil_230811, gestures_motion_galaxytab
 import operations.display
 import operations.classifier
 import operations.pca
 import features.basic
 import features.blockbased
 
-data = gestures_idmil_230811.load_data()
+# data = gestures_idmil_230811.load_data()
+data = gestures_motion_galaxytab.load_data()
 
 def get_cors(s,g):
     d = {'time': data[s][g][:,0],
@@ -153,29 +154,33 @@ def plot_accvel():
         plot(d['hipassed'][:,0],
              lfilter([1],[1,-1],d['hipassed'][:,0]))
 
-tr = []
 def plot_pca2():
-    cs = [get_cors(s,g) for s in range(6) for g in range(5)]
+    subjs = len(data)
+    gests = len(data[0])
+    cs = [get_cors(s,g) for s in range(subjs) for g in range(gests)]
     all_ds, all_cors = zip(*cs)
     trans = operations.pca.get_pca_transform(all_cors, numpcs=2,
-                   feature='axes_correlation')
-    tr.append(trans)
-    return
+                                             feature='axes_correlation')
 
     figure(1).clear()
     figure(2).clear()
     for cor in all_cors:
-        c = 'rgbymk'[int(cor['tags'][0][-1:])]
-        d = 'rgbymk'[cor['subject']]
+        c = cm.jet(float(cor['tags'][0][-1])/gests)
+        d = cm.jet(float(cor['subject'])/subjs)
 
         # Apply PCA transform
         pcomp = dot(trans, cor['axes_correlation'].T)
 
         # Take first two components
+        rc('legend',fontsize=8)
         figure(1)
-        plot(pcomp[0,:], pcomp[1,:], '%co'%c)
+        g = gestures_motion_galaxytab.gesture_tags()[int(cor['tags'][0][-1])]
+        scatter(pcomp[0,:], pcomp[1,:], marker='o', color=c,
+                label=g)
+        legend(loc=1)
         figure(2)
-        plot(pcomp[0,:], pcomp[1,:], '%co'%d)
+        scatter(pcomp[0,:], pcomp[1,:], marker='o', color=d,
+                label='Subject %d'%cor['subject'])
     figure(1)
     title("Axes correlation PCA1+2 by gesture")
     figure(2)
