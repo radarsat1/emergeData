@@ -6,7 +6,6 @@
  */
 
 /*
-load('hanning1024.js');
 load('trans.js');
 */
 
@@ -87,6 +86,17 @@ function testHPF()
         output[i] = f(input[i]);
     }
     print(output);
+}
+
+function hanning(L)
+{
+    var h = array(L);
+    var pi2 = 2*Math.PI / L;
+    for (var i = 0; i < L; i++)
+    {
+        h[i] = 0.5*(1-Math.cos(i*pi2));
+    }
+    return h;
 }
 
 /* Given a desired sample rate and window size, produce a function
@@ -248,6 +258,9 @@ function dot(a, b)
     }
     return c;
 }
+
+hanning1024 = hanning(1024);
+hanning256 = hanning(256);
 
 /* Compute the axis-correlation feature: An absolute sum of the
  * correlations between each pair of accelerometer axes. */

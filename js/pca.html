@@ -2,7 +2,6 @@
   <head>
     <script src="data.js"></script>
     <script src="labtrans.js"></script>
-    <script src="hanning1024.js"></script>
     <script>
       var colours = ['blue','red','green','yellow',
                      'orange','magenta','black'];
@@ -99,6 +98,17 @@
         return y;
       }
 
+      function hanning(L)
+      {
+        var h = array(L);
+        var pi2 = 2*Math.PI / L;
+        for (var i = 0; i < L; i++)
+        {
+          h[i] = 0.5*(1-Math.cos(i*pi2));
+        }
+        return h;
+      }
+
       function correlate(x1, x2)
       {
         var sum, a, b;
@@ -181,6 +191,8 @@
           context.fill();
           context.stroke();
       }
+
+      hanning1024 = hanning(1024);
 
       function getCor(s, g, t)
       {
