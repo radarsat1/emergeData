@@ -21,6 +21,20 @@ function hookAccelerometers(func)
   }
 }
 
+// Don't allow browser to react to touch events, stop zoom/scale/move
+// operations on page.
+function cancelTouches()
+{
+    var stopit = function(e) { e.preventDefault(); return false; };
+    document.body.ontouchstart = stopit;
+    document.body.ontouchmove = stopit;
+    document.ontouchstart = stopit;
+    document.ontouchmove = stopit;
+    window.ontouchstart = stopit;
+    window.ontouchmove = stopit;
+    return false;
+}
+
 window.onload = function() {
   var output = document.getElementById("output");
   var ax = document.getElementById("ax");
@@ -38,6 +52,8 @@ window.onload = function() {
     az.style.paddingRight = (a.z*10 + 100) + "px";
     analysis(time, [a.x, a.y, a.z]);
   });
+
+  cancelTouches();
 }
 </script>
 </head>
