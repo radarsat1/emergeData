@@ -116,13 +116,15 @@ def evaluate_with_classifier():
     #                                              learning_rate=0.95)
 
 def plot_reduced_correlation():
-    cs = [get_cors(s,g) for s in range(6) for g in range(5)]
+    subjs = len(data)
+    gests = len(data[0])
+    cs = [get_cors(s,g) for s in range(subjs) for g in range(gests)]
     all_ds, all_cors = zip(*cs)
     figure(1).clear()
     figure(2).clear()
     for cor in all_cors:
-        c = 'rgbymk'[int(cor['tags'][0][-1:])]
-        d = 'rgbymk'[cor['subject']]
+        c = ('rgbymk'*10)[int(cor['tags'][0][-1:])]
+        d = ('rgbymk'*10)[cor['subject']]
         figure(1)
         plot (cor['axes_correlation_reduced'][:,0],
               cor['axes_correlation_reduced'][:,1],
