@@ -173,7 +173,7 @@ def plot_pca2():
         d = cm.jet(float(cor['subject'])/subjs)
 
         # Apply PCA transform
-        pcomp = dot(trans, cor['axes_correlation'].T)
+        pcomp = dot(trans[:2,:], cor['axes_correlation'].T)
 
         # Take first two components
         rc('legend',fontsize=8)
