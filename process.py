@@ -11,24 +11,27 @@ import features.blockbased
 # data = gestures_idmil_230811.load_data()
 data = gestures_motion_galaxytab.load_data()
 
+downsample = 4
+
 def get_cors(s,g):
-    d = {'time': data[s][g][:,0],
-         'accel': data[s][g][:,1:]}
+    d = {'time': data[s][g][::downsample,0],
+         'accel': data[s][g][::downsample,1:]}
     # d['time'] = d['time'][:1024+16]
     # d['accel'] = d['accel'][:1024+16]
     features.basic.magnitude(d)
     features.basic.hipassed(d,2,0.01)
     sr = 1.0/average(d['time'][1:]-d['time'][:-1])
+    sr /= downsample
     freq = 0.8
     features.basic.axes_correlation2d(d,freq/sr*pi*2,arange(10)*100)
     ac = features.blockbased.windowed(d, 'mag',
                                       features.blockbased.autocorrelation,
                                       'autocorrelation',
-                                      size=1024, hopsize=16)
+                                      size=1024/downsample, hopsize=16)
     cor = features.blockbased.windowed(d, 'hipassed',
                                        features.blockbased.axes_correlation,
                                        'axes_correlation',
-                                       size=1024, hopsize=16)
+                                       size=1024/downsample, hopsize=16)
     cor['tags'] = ['gesture%d'%g] #, 'subject%d'%s]
     features.blockbased.correlation_reduce(cor, 'axes_correlation',
                                            'axes_correlation_reduced')
