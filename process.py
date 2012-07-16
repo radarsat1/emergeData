@@ -164,6 +164,8 @@ def plot_pca2():
     trans = operations.pca.get_pca_transform(all_cors, numpcs=2,
                                              feature='axes_correlation')
 
+    # savetxt('trans.csv', trans[:2,:], delimiter=',')
+
     figure(1).clear()
     figure(2).clear()
     for cor in all_cors:
