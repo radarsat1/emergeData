@@ -48,8 +48,29 @@ window.onload = function() {
   var ax = document.getElementById("ax");
   var ay = document.getElementById("ay");
   var az = document.getElementById("az");
+  var canv = document.getElementById("pc2");
+  var ctx = canv.getContext("2d");
+  var buf = document.getElementById("buf");
+  var bufctx = buf.getContext("2d");
+  buf.style.visibility = 'hidden';
+
+  ctx.strokeStyle = 'black';
+  ctx.strokeRect(0, 0, canv.width-1, canv.height-1);
+
   var analysis = analyseAccelerometers(function(timestamp, pcs){
         output.innerHTML = [timestamp,pcs] + '<br/>';// + output.innerHTML;
+        var x = (pcs[0]-2)/6*canv.width;
+        var y = (pcs[1]+2.5)/5*canv.height;
+        bufctx.clearRect(0, 0, buf.width, buf.height);
+        bufctx.drawImage(canv, 0, 0);
+        bufctx.strokeRect(0, 0, buf.width-1, buf.height-1);
+        ctx.clearRect(0, 0, canv.width, canv.height);
+        ctx.globalAlpha = 0.95;
+        ctx.drawImage(buf, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2*Math.PI);
+        ctx.stroke();
     });
 
   hookAccelerometers(function(e) {
@@ -72,5 +93,7 @@ window.onload = function() {
   <br/><span id="ay" style="background-color:black;height:30px;">&nbsp;</span>
   <br/><span id="az" style="background-color:black;height:30px;">&nbsp;</span>
   <p>Output: <span id="output"></span>
+  <p><canvas id="pc2" width="200" height="200"></canvas>
+     <canvas id="buf" width="200" height="200"></canvas>
 </body>
 </html>
