@@ -259,16 +259,15 @@ function dot(a, b)
     return c;
 }
 
-hanning1024 = hanning(1024);
-hanning256 = hanning(256);
+hanningWindow = hanning(windowSize);
 
 /* Compute the axis-correlation feature: An absolute sum of the
  * correlations between each pair of accelerometer axes. */
 function getCor(data)
 {
-    var w1 = mult(hanning1024, data[0]);
-    var w2 = mult(hanning1024, data[1]);
-    var w3 = mult(hanning1024, data[2]);
+    var w1 = mult(hanningWindow, data[0]);
+    var w2 = mult(hanningWindow, data[1]);
+    var w3 = mult(hanningWindow, data[2]);
     var cor1 = correlate(w1, w2);
     var cor2 = correlate(w1, w3);
     var cor3 = correlate(w2, w3);
@@ -303,7 +302,7 @@ function pcaTransform(cor)
 function analyseAccelerometers(func)
 {
     hpf = [genHPF(), genHPF(), genHPF()];
-    return resampleWindow(10.24, 100, null,
+    return resampleWindow(windowSize/sampleRate, sampleRate, hopTime,
         function(timestamp, window) {
             var len = window[0].length;
             for (var axis = 0; axis < 3; axis++) {
@@ -319,6 +318,10 @@ function analyseAccelerometers(func)
 
 function testAnalysis()
 {
+    sampleRate = 100;
+    windowSize = 1024;
+    hanningWindow = hanning(1024);
+
     var a = analyseAccelerometers(function(timestamp, pcs){
         print([timestamp,pcs]);
     });
