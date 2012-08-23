@@ -68,6 +68,20 @@ def axes_correlation(block):
         v = reduce(lambda x,y:abs(x)+abs(y), cor)
         return v / v.max()
 
+def axes_fft(block):
+    w = hanning(len(block))
+    if len(block.shape)==2:
+        ax = range(block.shape[1])
+        pairs = set([tuple(sort(z)) for z in
+                     [[x,y] for x in ax for y in ax if x != y]])
+        cor = []
+        for p in pairs:
+            cor.append(log((fft(block[:,p[0]]*w)*
+                            fft((block[:,p[1]]*w)))[:block.shape[0]/2]))
+
+        v = reduce(lambda x,y: x+abs(y), cor, 0)
+        return v / v.max()
+
 def fit_gaussian(x,y):
     """Provided the center parabola-like part of a Gaussian curve,
     returns a function that calculates any point on the curve."""

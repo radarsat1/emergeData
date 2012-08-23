@@ -32,6 +32,10 @@ def get_cors(s,g):
                                        features.blockbased.axes_correlation,
                                        'axes_correlation',
                                        size=1024/downsample, hopsize=16)
+    corfft = features.blockbased.windowed(d, 'hipassed',
+                                          features.blockbased.axes_fft,
+                                          'axes_fft',
+                                          size=1024/downsample, hopsize=16)
     cor['tags'] = ['gesture%d'%g] #, 'subject%d'%s]
     features.blockbased.correlation_reduce(cor, 'axes_correlation',
                                            'axes_correlation_reduced')
@@ -39,6 +43,7 @@ def get_cors(s,g):
     cors = {'time': ac['time']}
     cors['autocorrelation'] = ac['autocorrelation']#[:,::10]
     cors['axes_correlation'] = cor['axes_correlation']#[:,::10]
+    cors['axes_fft'] = corfft['axes_fft']#[:,::10]
     cors['axes_correlation_reduced'] = cor['axes_correlation_reduced']
     cors['subject'] = s
     cors['tags'] = ['gesture%d'%g] #, 'subject%d'%s]
@@ -165,7 +170,7 @@ def plot_pca2():
     cs = [get_cors(s,g) for s in range(subjs) for g in range(gests)]
     all_ds, all_cors = zip(*cs)
     trans = operations.pca.get_pca_transform(all_cors, numpcs=2,
-                                             feature='axes_correlation')
+                                             feature='axes_fft')
 
     # savetxt('trans.csv', trans[:2,:], delimiter=',')
 
@@ -176,7 +181,7 @@ def plot_pca2():
         d = cm.jet(float(cor['subject'])/subjs)
 
         # Apply PCA transform
-        pcomp = dot(trans[:2,:], cor['axes_correlation'].T)
+        pcomp = dot(trans[:2,:], cor['axes_fft'].T)
 
         # Take first two components
         rc('legend',fontsize=8)
@@ -184,14 +189,14 @@ def plot_pca2():
         g = gestures_motion_galaxytab.gesture_tags()[int(cor['tags'][0][-1])]
         scatter(pcomp[0,:], pcomp[1,:], marker='o', color=c,
                 label=g)
-        legend(loc=1)
+        legend(loc=6)
         figure(2)
         scatter(pcomp[0,:], pcomp[1,:], marker='o', color=d,
                 label='Subject %d'%cor['subject'])
     figure(1)
-    title("Axes correlation PCA1+2 by gesture")
+    title("Axes FFT PCA1+2 by gesture")
     figure(2)
-    title("Axes correlation PCA1+2 by subject")
+    title("Axes FFT PCA1+2 by subject")
 
 # plot_them()
 # plot_autocor()
