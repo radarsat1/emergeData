@@ -107,7 +107,7 @@ function resampleWindow(seconds, rate, hop, func)
     var len = rate * seconds;
     var ms = seconds * 1000;
     var buffer = [];
-    var output = document.getElementById("output");
+
     return function(timestamp, data) {
         buffer.push({timestamp:timestamp, data:data});
         if ((timestamp - buffer[0].timestamp) >= ms) {
@@ -215,6 +215,14 @@ function mult(x1, x2)
     return y;
 }
 
+function map(f, x)
+{
+    var i, y = array(x.length);
+    for (i = 0; i < x.length; i++)
+        y[i] = f(x[i]);
+    return y;
+}
+
 function correlate(x1, x2)
 {
     var sum, a, b;
@@ -277,6 +285,31 @@ function getCor(data)
     return cor;
 }
 
+
+//load('fft.js');
+fft = new RFFT(windowSize, sampleRate);
+
+safelog = function(x) { if (x<=0) return 0.000001; else return Math.log(x); };
+
+/* Compute the axis-fft feature: A product of the log-fft between each
+ * pair of accelerometer axes. */
+function getLogFFT(data)
+{
+    var w1 = mult(hanningWindow, data[0]);
+    var w2 = mult(hanningWindow, data[1]);
+    var w3 = mult(hanningWindow, data[2]);
+    fft.forward(w1); var f1 = fft.spectrum;
+    fft.forward(w2); var f2 = fft.spectrum;
+    fft.forward(w3); var f3 = fft.spectrum;
+    var m1 = map(Math.abs, map(safelog, mult(f1,f2)));
+    var m2 = map(Math.abs, map(safelog, mult(f1,f3)));
+    var m3 = map(Math.abs, map(safelog, mult(f2,f3)));
+
+    var logfft = sum(sum(m1,m2),m3);
+    logfft = scale(logfft, 1.0/max(logfft));
+    return logfft;
+}
+
 /* Return the first two principle components of an axis-correlation
  * feature vector based on a pre-computed transformation matrix.
  * (Really this is just a generic matrix multiplication that happens
@@ -305,13 +338,19 @@ function analyseAccelerometers(func)
     return resampleWindow(windowSize/sampleRate, sampleRate, hopTime,
         function(timestamp, window) {
             var len = window[0].length;
+
+            // Note, bug: this application of the filter doesn't take
+            // the hop into account properly, should fix by moving
+            // filter into pre-windowing code.
             for (var axis = 0; axis < 3; axis++) {
                 for (var i = 0; i < len; i++) {
                     window[axis][i] = hpf[axis](window[axis][i]);
                 }
             }
-            var cor = getCor(window);
-            var pcs = pcaTransform(cor);
+
+            var features = getLogFFT(window);
+            var pcs = pcaTransform(features);
+
             func(timestamp, pcs);
         });
 }
@@ -320,13 +359,21 @@ function testAnalysis()
 {
     sampleRate = 100;
     windowSize = 1024;
+    hopTime = 1.0;
     hanningWindow = hanning(1024);
 
+    var time = new Date();
+    var total_time = 0;
+    var count = 0;
+
     var a = analyseAccelerometers(function(timestamp, pcs){
-        print([timestamp,pcs]);
+        //print([timestamp,pcs]);
+        total_time += new Date() - time;
+        count ++;
     });
 
     /* Example data */
+    load('trans.js');
     load('data.js');
     var T = 1.0/100;
     var k = 0;
@@ -334,8 +381,11 @@ function testAnalysis()
     for (var g=0; g<5; g++) {
         var d = data[0][g];
         for (var i = 0; i < d[0].length; i++) {
-            a(T*k, [d[0][i], d[1][i], d[2][i]]);
+            time = new Date();
+            a(T*k*1000, [d[0][i], d[1][i], d[2][i]]);
             k ++;
         }
     }
+    print("total time: " + total_time);
+    print("avg time:   " + (total_time/count));
 }

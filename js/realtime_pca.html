@@ -8,7 +8,8 @@ windowSize = 256;  // Samples
 hopTime = 1.0;     // Seconds
 
 </script>
-<script src="trans.js"></script>
+<script src="transfft.js"></script>
+<script src="fft.js"></script>
 <script src="analysis.js"></script>
 <script>
 function hookAccelerometers(func)
@@ -58,9 +59,9 @@ window.onload = function() {
   ctx.strokeRect(0, 0, canv.width-1, canv.height-1);
 
   var analysis = analyseAccelerometers(function(timestamp, pcs){
-        output.innerHTML = [timestamp,pcs] + '<br/>';// + output.innerHTML;
-        var x = (pcs[0]-2)/6*canv.width;
-        var y = (pcs[1]+2.5)/5*canv.height;
+        //output.innerHTML = [timestamp,pcs] + '<br/>';// + output.innerHTML;
+        var x = (pcs[0]+7.5)/7*canv.width;
+        var y = (pcs[1]+5.0)/5*canv.height;
         bufctx.clearRect(0, 0, buf.width, buf.height);
         bufctx.drawImage(canv, 0, 0);
         bufctx.strokeRect(0, 0, buf.width-1, buf.height-1);
