@@ -172,6 +172,9 @@ def plot_pca2():
     trans = operations.pca.get_pca_transform(all_cors, numpcs=2,
                                              feature='axes_fft')
 
+    # import json
+    # json.dump(map(list,trans[:2,:]), file('trans.js','w'), indent=True);
+
     # savetxt('trans.csv', trans[:2,:], delimiter=',')
 
     figure(1).clear()
