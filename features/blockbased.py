@@ -74,13 +74,24 @@ def axes_fft(block):
         ax = range(block.shape[1])
         pairs = set([tuple(sort(z)) for z in
                      [[x,y] for x in ax for y in ax if x != y]])
-        cor = []
-        for p in pairs:
-            cor.append(log((fft(block[:,p[0]]*w)*
-                            fft((block[:,p[1]]*w)))[:block.shape[0]/2]))
 
-        v = reduce(lambda x,y: x+abs(y), cor, 0)
-        return v / v.max()
+        normalize = lambda x: ((x - x.mean())
+                               / sqrt(average((x-x.mean())**2)))
+
+        features = []
+        for p in pairs:
+            a = block[:,p[0]]
+            b = block[:,p[1]]
+            # a = normalize(a)
+            # b = normalize(b)
+            a = abs(fft(a*w))[:block.shape[0]/2]
+            b = abs(fft(b*w))[:block.shape[0]/2]
+            c = log10(1+a*b)
+            features.append(c)
+
+        v = sum(features,axis=0)/len(features)
+
+        return v-v.mean(); #normalize(v)
 
 def fit_gaussian(x,y):
     """Provided the center parabola-like part of a Gaussian curve,
