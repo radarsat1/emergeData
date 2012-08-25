@@ -21,6 +21,10 @@ def windowed(data, name, f, fname, size=256, hopsize=128):
         res = []
         for k in ts:
             res.append(f(d[k*hopsize:k*hopsize+size,:]))
+            if fname=='axes_fft':
+                c = cm.jet(int(data['tags'][0][7:])/11.0)
+                figure(3)
+                plot(res[-1], color=c, alpha=0.1)
         return {'time': t, fname: array(res)}
 
 def windowed_by_axis(data, name, f, fname, size=256, hopsize=128):

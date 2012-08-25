@@ -24,6 +24,7 @@ def get_cors(s,g):
     sr /= downsample
     freq = 0.8
     features.basic.axes_correlation2d(d,freq/sr*pi*2,arange(10)*100)
+    d['tags'] = ['gesture%d'%g] #, 'subject%d'%s]
     ac = features.blockbased.windowed(d, 'mag',
                                       features.blockbased.autocorrelation,
                                       'autocorrelation',
