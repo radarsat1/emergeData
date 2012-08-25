@@ -190,6 +190,15 @@ function sum()
     return y;
 }
 
+function sub(x,s)
+{
+    var i, y = array(L);
+    for (i=0; i < x.length; i++) {
+        y[i] = x[i] - s;
+    }
+    return y;
+}
+
 function scale(x, m)
 {
     var i, y = array(x.length);
@@ -213,6 +222,14 @@ function mult(x1, x2)
     for (i = 0; i < x1.length; i++)
         y[i] = x1[i] * x2[i];
     return y;
+}
+
+function mean(x)
+{
+    var i, m = 0;
+    for (i = 0; i < x.length; i++)
+        m += x[i];
+    return m / x.length;
 }
 
 function map(f, x)
@@ -287,27 +304,42 @@ function getCor(data)
 
 
 //load('fft.js');
-fft = new RFFT(windowSize, sampleRate);
 
-safelog = function(x) { if (x<=0) return 0.000001; else return Math.log(x); };
+ffts = {}
+function absfft(x) {
+    if (!(x.length in ffts))
+        ffts[x.length] = new RFFT(x.length, 100);
+    var fft = ffts[x.length];
+
+    fft.forward(x);
+    var s = array(x.length/2);
+    s[0] = Math.abs(fft.trans[0]);
+    for (var i = 0; i<127; i++) {
+        var re = fft.trans[i+1];
+        var im = fft.trans[255-i];
+        s[i+1] = Math.sqrt(re*re+im*im);
+    }
+    return s;
+}
 
 /* Compute the axis-fft feature: A product of the log-fft between each
  * pair of accelerometer axes. */
+log10plus1 = function(x) { return Math.log(x+1)/Math.log(10); };
 function getLogFFT(data)
 {
     var w1 = mult(hanningWindow, data[0]);
     var w2 = mult(hanningWindow, data[1]);
     var w3 = mult(hanningWindow, data[2]);
-    fft.forward(w1); var f1 = fft.spectrum;
-    fft.forward(w2); var f2 = fft.spectrum;
-    fft.forward(w3); var f3 = fft.spectrum;
-    var m1 = map(Math.abs, map(safelog, mult(f1,f2)));
-    var m2 = map(Math.abs, map(safelog, mult(f1,f3)));
-    var m3 = map(Math.abs, map(safelog, mult(f2,f3)));
 
-    var logfft = sum(sum(m1,m2),m3);
-    logfft = scale(logfft, 1.0/max(logfft));
-    return logfft;
+    var f1 = absfft(w1);
+    var f2 = absfft(w2);
+    var f3 = absfft(w3);
+    var m1 = map(log10plus1, mult(f1,f2));
+    var m2 = map(log10plus1, mult(f1,f3));
+    var m3 = map(log10plus2, mult(f2,f3));
+
+    var logfft = scale(sum(sum(m1,m2),m3), 1.0/3);
+    return sub(logfft, mean(logfft));
 }
 
 /* Return the first two principle components of an axis-correlation
