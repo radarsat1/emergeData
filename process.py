@@ -2,6 +2,7 @@
 
 from pylab import *
 from data import gestures_idmil_230811, gestures_motion_galaxytab
+from data import gestures_motion_drums
 import operations.display
 import operations.classifier
 import operations.pca
@@ -9,7 +10,9 @@ import features.basic
 import features.blockbased
 
 # data = gestures_idmil_230811.load_data()
-data = gestures_motion_galaxytab.load_data()
+# data = gestures_motion_galaxytab.load_data()
+dataset = gestures_motion_drums
+data = dataset.load_data()
 
 downsample = 4
 
@@ -54,14 +57,14 @@ def plot_suj_gesture(s,g):
     d, cors = get_cors(s,g)
 
     subplot(5,4,g*4+1)
-    #operations.display.matrixtimeplot(cors, 'autocorrelation')
+    operations.display.matrixtimeplot(cors, 'autocorrelation')
     plot(cors['autocorrelation'][0])
     subplot(5,4,g*4+2)
     #operations.display.matrixtimeplot(cors, 'axes_correlation')
     #plot(cors['axes_correlation'][0])
     [plot(b,alpha=0.2) for b in cors['axes_correlation']]
     subplot(5,4,g*4+3)
-    [plot(b,alpha=0.2) for b in cors['axes_correlation_reduced']]
+    [plot(b,alpha=0.2) for b in cors['axes_fft']]
     subplot(5,4,g*4+4)
     [plot(b,alpha=0.1) for b in d['axes_cor2d']]
 
@@ -95,14 +98,24 @@ def plot_axescor():
         for j in range(5):
             plot_suj_gest_autocor(i,j)
 
+def plot_vstime():
+    S = len(data)
+    G = len(data[0])
+    for s in range(S):
+        for g in range(G):
+            subplot(G, S, g*S+s+1)
+            d = {'time': data[s][g][::downsample,0],
+                 'accel': data[s][g][::downsample,1:]}
+            plot(d['time'],d['accel'])
+
 def plot_them():
-    for i in range(3):
+    for i in range(1):
         figure(i+1).clear()
         plot_suj_gesture(i,0)
         plot_suj_gesture(i,1)
         plot_suj_gesture(i,2)
-        plot_suj_gesture(i,3)
-        plot_suj_gesture(i,4)
+        #plot_suj_gesture(i,3)
+        #plot_suj_gesture(i,4)
 
 def evaluate_with_classifier():
     cs = [get_cors(s,g) for s in range(6) for g in range(5)]
@@ -190,7 +203,7 @@ def plot_pca2():
         # Take first two components
         rc('legend',fontsize=8)
         figure(1)
-        g = gestures_motion_galaxytab.gesture_tags()[int(cor['tags'][0][-1])]
+        g = dataset.gesture_tags()[int(cor['tags'][0][-1])]
         scatter(pcomp[0,:], pcomp[1,:], marker='o', color=c,
                 label=g)
         legend(loc=6)
@@ -202,7 +215,8 @@ def plot_pca2():
     figure(2)
     title("Axes FFT PCA1+2 by subject")
 
-# plot_them()
+#plot_them()
+#plot_vstime()
 # plot_autocor()
 # plot_axescor()
 # plot_reduced_correlation()
