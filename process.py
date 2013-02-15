@@ -207,6 +207,14 @@ def plot_pca2():
         rc('legend',fontsize=8)
         figure(1)
         g = dataset.gesture_tags()[int(cor['tags'][0][-1])]
+
+        # Save out the PCA data into separate files per gesture.
+        # f = open(g.replace(' ','_')+'.txt', 'w')
+        # pca = vstack([cor['time']-cor['time'][0],
+        #               pcomp, cor['mag']]).T
+        # for p in pca:
+        #     print >>f, '%d, %g %g %g'%tuple(p)
+
         scatter(pcomp[0,:], pcomp[1,:], marker='o', color=c,
                 label=g)
         legend(loc=6)
