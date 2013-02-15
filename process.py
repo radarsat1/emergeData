@@ -3,15 +3,17 @@
 from pylab import *
 from data import gestures_idmil_230811, gestures_motion_galaxytab
 from data import gestures_motion_drums
+import data.feb12
 import operations.display
-import operations.classifier
+#import operations.classifier
 import operations.pca
 import features.basic
 import features.blockbased
 
 # data = gestures_idmil_230811.load_data()
 # data = gestures_motion_galaxytab.load_data()
-dataset = gestures_motion_drums
+#dataset = gestures_motion_drums
+dataset = data.feb12
 data = dataset.load_data()
 
 downsample = 4
