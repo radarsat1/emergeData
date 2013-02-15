@@ -28,7 +28,8 @@ from matplotlib.mlab import prepca
 
 def get_pca_transform(blocks, numpcs=2, feature='axes_correlation'):
     # Put all blocks together into one big array
-    vectors = concatenate([b[feature] for b in blocks]).T
+    vectors = concatenate([b[feature] for b in blocks
+                           if b[feature].shape!=(0,)]).T
     # coeff, score, latent = princomp(vectors, numpcs)
     Pcomponents, Trans, fracVar = prepca(vectors)
     return Trans
