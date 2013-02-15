@@ -48,6 +48,7 @@ def get_cors(s,g):
     cors['autocorrelation'] = ac['autocorrelation']#[:,::10]
     cors['axes_correlation'] = cor['axes_correlation']#[:,::10]
     cors['axes_fft'] = corfft['axes_fft']#[:,::10]
+    cors['mag'] = corfft['mag']#[:,::10]
     cors['axes_correlation_reduced'] = cor['axes_correlation_reduced']
     cors['subject'] = s
     cors['tags'] = ['gesture%d'%g] #, 'subject%d'%s]

@@ -6,6 +6,9 @@ __all__ = ['windowed', 'windowed_by_axis',
 from pylab import *
 from scipy.signal import hanning, fftconvolve
 
+def rms(x):
+    return sqrt(average(x*x))
+
 def windowed(data, name, f, fname, size=256, hopsize=128):
     d = data[name]
     if len(d.shape)==1:
@@ -18,16 +21,18 @@ def windowed(data, name, f, fname, size=256, hopsize=128):
     elif len(d.shape)==2:
         ts = arange((d.shape[0]-size)/hopsize)
         t = array([data['time'][t] for t in ts*hopsize])
+        m = []
         res = []
         for k in ts:
+            m.append(rms(d[k*hopsize:k*hopsize+size,:]))
             res.append(f(d[k*hopsize:k*hopsize+size,:]))
-            if fname=='axes_fft':
-                g = int(data['tags'][0][7:])
-                c = cm.jet(g/3.0)
-                figure(3)
-                subplot(3,1,g+1)
-                plot(res[-1], color=c, alpha=0.1)
-        return {'time': t, fname: array(res)}
+            # if fname=='axes_fft':
+            #     g = int(data['tags'][0][7:])
+            #     c = cm.jet(g/3.0)
+            #     figure(3)
+            #     subplot(3,1,g+1)
+            #     plot(res[-1], color=c, alpha=0.1)
+        return {'time': t, fname: array(res), 'mag': m}
 
 def windowed_by_axis(data, name, f, fname, size=256, hopsize=128):
     d = data[name]
