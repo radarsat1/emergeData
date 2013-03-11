@@ -1,0 +1,9 @@
+
+Number of logons per minute
+Number of logoffs per minute
+
+## Logon-to-logoff time
+first day: 1.28 min (avg), 1.15 min (std)
+second day: 1 min (avg), 0.55 min (std)
+
+Average number of re-logins with same id
