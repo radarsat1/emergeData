@@ -77,10 +77,18 @@ ax2.set_ylabel('PC 2')
 ax3.set_ylabel('Ampl')
 
 figure(3)
+n = 0
 for i in pcadata.keys():
+    n += 1
+    subplot(7,7,n)
     for d in pcadata[i]:
         scatter(d[:,1], d[:,2], color=cm.prism(i/m))
-xlabel('PC 1')
-ylabel('PC 2')
+    xlim(-14,2)
+    ylim(-6,6)
+    xlabel('')
+    xticks([])
+    ylabel('')
+    yticks([])
+suptitle("PC1 vs. PC2 for each user ID")
 
 show()
