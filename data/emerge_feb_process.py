@@ -1,6 +1,11 @@
 
 from pylab import *
 
+recording = [open('emerge_feb16.txt','r').readlines(),
+             open('emerge_feb17.txt','r').readlines(),
+             (open('emerge_feb16.txt','r').readlines()
+              + open('emerge_feb17.txt','r').readlines())][1]
+
 rawtimes = []
 data = []
 logons = []
@@ -8,8 +13,8 @@ logoffs = []
 loggedin = dict([(i,(False,[])) for i in range(40)])
 pcadata = dict([(i,[]) for i in range(40)])
 t0 = None
-for line in ([]# open('emerge_feb16.txt','r').readlines()
-             + open('emerge_feb17.txt','r').readlines()):
+totalloggedin = []
+for line in recording:
     line = line.split()
     t = int(line[0]) + float(line[1])/float(1<<32)
 
@@ -36,10 +41,13 @@ for line in ([]# open('emerge_feb16.txt','r').readlines()
                 pcadata[idnum].append(loggedin[idnum][1])
             loggedin[idnum] = (False, [])
             logoffs.append([t, idnum, state])
+        totalloggedin.append( sum([loggedin[l][0] for l in loggedin]) )
 
 rawtimes = array(rawtimes)
 logons = array(logons)
 logoffs = array(logoffs)
+
+print 'Total logged in, avg:',average(totalloggedin),'std:',std(totalloggedin),'max:',max(totalloggedin)
 
 for i in pcadata.keys():
     for n,d in enumerate(pcadata[i]):

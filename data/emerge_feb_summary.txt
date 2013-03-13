@@ -1,9 +1,13 @@
 
+## Logon-to-logoff time
+Sat: 1.28 min (avg), 1.15 min (std)
+Sun: 1 min (avg), 0.55 min (std)
+
+## Total logged in at once
+Sat: 2.7 (avg), 1.13 (std), 6 (max)
+Sun: 3.7 (avg), 2.4 (std), 9 (max)
+
+## Not yet calcucated...
 Number of logons per minute
 Number of logoffs per minute
-
-## Logon-to-logoff time
-first day: 1.28 min (avg), 1.15 min (std)
-second day: 1 min (avg), 0.55 min (std)
-
 Average number of re-logins with same id
