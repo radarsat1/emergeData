@@ -64,17 +64,17 @@ ylabel('ID')
 
 figure(2)
 m = float(max(pcadata.keys()))
+ax1 = subplot(311)
+ax2 = subplot(312,sharex = ax1)
+ax3 = subplot(313,sharex = ax1)
 for i in pcadata.keys():
     for d in pcadata[i]:
-        subplot(311)
-        plot(d[:,0], d[:,1], color=cm.prism(i/m))
-        subplot(312)
-        plot(d[:,0], d[:,2], color=cm.prism(i/m))
-        subplot(313)
-        plot(d[:,0], d[:,3], color=cm.prism(i/m))
-subplot(311); ylabel('PC 1')
-subplot(312); ylabel('PC 2')
-subplot(313); ylabel('Ampl')
+        ax1.plot(d[:,0], d[:,1], color=cm.prism(i/m))
+        ax2.plot(d[:,0], d[:,2], color=cm.prism(i/m))
+        ax3.plot(d[:,0], d[:,3], color=cm.prism(i/m))
+ax1.set_ylabel('PC 1')
+ax2.set_ylabel('PC 2')
+ax3.set_ylabel('Ampl')
 
 figure(3)
 for i in pcadata.keys():
